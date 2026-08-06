@@ -1,0 +1,18 @@
+{
+  "name": "laporan-dkbpp",
+  "version": "1.0.0",
+  "description": "Sistem Pendaftaran & Laporan Darjah Kebesaran, Bintang dan Pingat Persekutuan",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/06noah20/Laporan-DKBPP.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^6.0.1",
+    "express": "^5.2.1"
+  }
+}

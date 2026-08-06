@@ -1,0 +1,18 @@
+<%- include('partials/header', { title: record.nama + ' - Sistem Laporan DKBPP' }) %>
+
+<h3><%= record.nama %></h3>
+<table class="table table-bordered w-auto">
+  <tbody>
+    <tr><th>No. Kad Pengenalan</th><td><%= record.noKp %></td></tr>
+    <tr><th>Jenis Anugerah</th><td><%= record.jenisAnugerah %></td></tr>
+    <tr><th>Gelaran/Pangkat</th><td><%= record.gelaran %></td></tr>
+    <tr><th>Tahun Anugerah</th><td><%= record.tahun %></td></tr>
+    <tr><th>Negeri/Institusi</th><td><%= record.negeriInstitusi %></td></tr>
+    <tr><th>Catatan</th><td><%= record.catatan || '-' %></td></tr>
+  </tbody>
+</table>
+
+<a href="/<%= record.id %>/edit" class="btn btn-primary">Kemaskini</a>
+<a href="/" class="btn btn-outline-secondary">Kembali ke Senarai</a>
+
+<%- include('partials/footer') %>

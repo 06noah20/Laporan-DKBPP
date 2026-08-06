@@ -1,0 +1,57 @@
+<%- include('partials/header', { title: (record && record.id ? 'Kemaskini' : 'Daftar') + ' Penerima - Sistem Laporan DKBPP' }) %>
+
+<h3><%= record && record.id ? 'Kemaskini Penerima' : 'Daftar Penerima Baharu' %></h3>
+
+<% if (errors && errors.length) { %>
+  <div class="alert alert-danger">
+    <ul class="mb-0">
+      <% errors.forEach(function(e) { %><li><%= e %></li><% }) %>
+    </ul>
+  </div>
+<% } %>
+
+<form method="post" action="<%= record && record.id ? '/' + record.id + '/edit' : '/tambah' %>" class="row g-3">
+  <div class="col-md-6">
+    <label class="form-label">Nama Penuh</label>
+    <input type="text" class="form-control" name="nama" value="<%= record ? record.nama : '' %>" required>
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">No. Kad Pengenalan</label>
+    <input type="text" class="form-control" name="noKp" value="<%= record ? record.noKp : '' %>" required>
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">Tahun Anugerah</label>
+    <input type="number" class="form-control" name="tahun" value="<%= record ? record.tahun : '' %>" required>
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label">Jenis Anugerah</label>
+    <select class="form-select" name="jenisAnugerah" required>
+      <option value="">-- Pilih --</option>
+      <% JENIS_ANUGERAH.forEach(function(j) { %>
+        <option value="<%= j %>" <%= record && record.jenisAnugerah === j ? 'selected' : '' %>><%= j %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="col-md-4">
+    <label class="form-label">Gelaran/Pangkat Anugerah</label>
+    <input type="text" class="form-control" name="gelaran" placeholder="cth. Darjah Dato' Paduka Mahkota Perak"
+           value="<%= record ? record.gelaran : '' %>" required>
+  </div>
+  <div class="col-md-4">
+    <label class="form-label">Negeri/Institusi Pencalon</label>
+    <input type="text" class="form-control" name="negeriInstitusi" value="<%= record ? record.negeriInstitusi : '' %>" required>
+  </div>
+
+  <div class="col-12">
+    <label class="form-label">Catatan</label>
+    <textarea class="form-control" name="catatan" rows="3"><%= record ? record.catatan : '' %></textarea>
+  </div>
+
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary">Simpan</button>
+    <a href="/" class="btn btn-outline-secondary">Batal</a>
+  </div>
+</form>
+
+<%- include('partials/footer') %>

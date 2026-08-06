@@ -1,0 +1,88 @@
+<%- include('partials/header', { title: 'Senarai Penerima - Sistem Laporan DKBPP' }) %>
+
+<h3 class="mb-1">Senarai Penerima</h3>
+<p class="text-muted">Darjah Kebesaran, Bintang dan Pingat Persekutuan</p>
+
+<form class="row g-2 mb-3" method="get" action="/">
+  <div class="col-md-3">
+    <input type="text" class="form-control" name="q" placeholder="Cari nama / No. KP / gelaran" value="<%= filters.q %>">
+  </div>
+  <div class="col-md-3">
+    <select class="form-select" name="jenisAnugerah">
+      <option value="">Semua Jenis Anugerah</option>
+      <% JENIS_ANUGERAH.forEach(function(j) { %>
+        <option value="<%= j %>" <%= filters.jenisAnugerah === j ? 'selected' : '' %>><%= j %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select class="form-select" name="tahun">
+      <option value="">Semua Tahun</option>
+      <% tahunList.forEach(function(t) { %>
+        <option value="<%= t %>" <%= String(filters.tahun) === String(t) ? 'selected' : '' %>><%= t %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select class="form-select" name="negeriInstitusi">
+      <option value="">Semua Negeri/Institusi</option>
+      <% negeriList.forEach(function(n) { %>
+        <option value="<%= n %>" <%= filters.negeriInstitusi === n ? 'selected' : '' %>><%= n %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="col-md-2 d-flex gap-2">
+    <button type="submit" class="btn btn-primary flex-fill">Tapis</button>
+    <a href="/" class="btn btn-outline-secondary">Reset</a>
+  </div>
+</form>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <span class="text-muted"><%= records.length %> rekod dijumpai</span>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-dark btn-sm" target="_blank"
+       href="/laporan/cetak?<%= new URLSearchParams(filters).toString() %>">Cetak Laporan</a>
+    <a class="btn btn-outline-success btn-sm"
+       href="/laporan/eksport.csv?<%= new URLSearchParams(filters).toString() %>">Eksport CSV</a>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped table-bordered align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Nama</th>
+        <th>No. KP</th>
+        <th>Jenis Anugerah</th>
+        <th>Gelaran/Pangkat</th>
+        <th>Tahun</th>
+        <th>Negeri/Institusi</th>
+        <th>Tindakan</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (records.length === 0) { %>
+        <tr><td colspan="7" class="text-center text-muted">Tiada rekod dijumpai.</td></tr>
+      <% } %>
+      <% records.forEach(function(r) { %>
+        <tr>
+          <td><a href="/<%= r.id %>"><%= r.nama %></a></td>
+          <td><%= r.noKp %></td>
+          <td><%= r.jenisAnugerah %></td>
+          <td><%= r.gelaran %></td>
+          <td><%= r.tahun %></td>
+          <td><%= r.negeriInstitusi %></td>
+          <td class="text-nowrap">
+            <a href="/<%= r.id %>/edit" class="btn btn-sm btn-outline-primary">Kemaskini</a>
+            <form action="/<%= r.id %>/padam" method="post" class="d-inline"
+                  onsubmit="return confirm('Padam rekod ini?');">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Padam</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/footer') %>
