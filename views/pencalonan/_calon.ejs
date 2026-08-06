@@ -33,8 +33,24 @@
       <div class="pc-field"><div class="k">Bangsa</div><div class="v"><%= c.bangsa || 'Belum dinyatakan' %></div></div>
     </div>
 
-    <div class="pc-notes-label">Anugerah Diterima / Catatan</div>
-    <div class="pc-notes"><%= c.anugerahDiterima || 'Tiada' %></div>
+    <% var parsed = parseAnugerah(c.anugerahDiterima); %>
+    <div class="pc-notes-label">Anugerah Yang Diterima</div>
+    <div class="pc-notes">
+      <% if (parsed.anugerah.length === 0) { %>
+        <div class="pc-note-item"><span class="pc-note-thn"></span><span class="pc-note-teks">Tiada</span></div>
+      <% } %>
+      <% parsed.anugerah.forEach(function(e) { %>
+        <div class="pc-note-item"><span class="pc-note-thn"><%= e.tahun %></span><span class="pc-note-teks"><%= e.teks %></span></div>
+      <% }) %>
+    </div>
+    <% if (parsed.nota.length) { %>
+      <div class="pc-notes-label" style="margin-top:10px;">Nota / Sumbangan</div>
+      <div class="pc-notes">
+        <% parsed.nota.forEach(function(e) { %>
+          <div class="pc-note-item"><span class="pc-note-thn"><%= e.tahun %></span><span class="pc-note-teks"><%= e.teks %></span></div>
+        <% }) %>
+      </div>
+    <% } %>
 
     <div class="pc-peraku-bar">
       <% if (c.status === 'diperaku') { %>

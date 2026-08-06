@@ -216,7 +216,6 @@ body {
   margin-bottom: 4px;
 }
 .pc-notes {
-  white-space: pre-wrap;
   font-size: 12px;
   line-height: 1.5;
   color: #4b5872;
@@ -225,6 +224,23 @@ body {
   border-radius: 8px;
   padding: 10px 12px;
 }
+.pc-note-item {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 12px;
+  padding: 3px 0;
+}
+.pc-note-item + .pc-note-item {
+  border-top: 1px solid rgba(22, 35, 62, 0.05);
+}
+.pc-note-thn {
+  font-weight: 700;
+  color: #9c7220;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  white-space: nowrap;
+}
+.pc-note-teks { color: #4b5872; }
 
 /* kotak PERAKU hijau di bawah kanan */
 .pc-peraku-bar {

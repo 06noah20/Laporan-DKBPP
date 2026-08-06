@@ -42,12 +42,32 @@
       </div>
     </div>
 
+    <% var parsedD = parseAnugerah(record.anugerahDiterima); %>
     <div class="card mb-3">
-      <div class="card-header">Anugerah Diterima / Catatan</div>
+      <div class="card-header">Anugerah Yang Diterima</div>
       <div class="card-body">
-        <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;"><%= record.anugerahDiterima || 'Tiada' %></pre>
+        <div class="pc-notes" style="border:none; padding:0;">
+          <% if (parsedD.anugerah.length === 0) { %>
+            <div class="pc-note-item"><span class="pc-note-thn"></span><span class="pc-note-teks">Tiada</span></div>
+          <% } %>
+          <% parsedD.anugerah.forEach(function(e) { %>
+            <div class="pc-note-item"><span class="pc-note-thn"><%= e.tahun %></span><span class="pc-note-teks"><%= e.teks %></span></div>
+          <% }) %>
+        </div>
       </div>
     </div>
+    <% if (parsedD.nota.length) { %>
+    <div class="card mb-3">
+      <div class="card-header">Nota / Sumbangan</div>
+      <div class="card-body">
+        <div class="pc-notes" style="border:none; padding:0;">
+          <% parsedD.nota.forEach(function(e) { %>
+            <div class="pc-note-item"><span class="pc-note-thn"><%= e.tahun %></span><span class="pc-note-teks"><%= e.teks %></span></div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+    <% } %>
   </div>
 
   <div class="col-md-4">
