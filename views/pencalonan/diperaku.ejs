@@ -1,0 +1,60 @@
+<%- include('../partials/header', { title: title }) %>
+
+<h3 class="mb-1">Senarai Calon Diperaku</h3>
+<p class="text-muted">Calon yang telah diperaku, disusun mengikut kementerian/jabatan.</p>
+
+<form class="row g-2 mb-3" method="get" action="/pencalonan/diperaku">
+  <% if (filters.kementerian) { %>
+    <input type="hidden" name="kementerian" value="<%= filters.kementerian %>">
+  <% } %>
+  <div class="col-md-4">
+    <input type="text" class="form-control" name="q" placeholder="Cari nama / No. KP / jawatan" value="<%= filters.q %>">
+  </div>
+  <div class="col-md-3">
+    <select class="form-select" name="kategoriPencalonan">
+      <option value="">Semua Kategori</option>
+      <% kategoriList.forEach(function(k) { %>
+        <option value="<%= k %>" <%= filters.kategoriPencalonan === k ? 'selected' : '' %>><%= k %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="col-md-3">
+    <select class="form-select" name="anugerah">
+      <option value="">Semua Anugerah</option>
+      <% anugerahList.forEach(function(a) { %>
+        <option value="<%= a %>" <%= filters.anugerah === a ? 'selected' : '' %>><%= a %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="col-md-2 d-flex gap-2">
+    <button type="submit" class="btn btn-primary flex-fill">Tapis</button>
+    <a href="/pencalonan/diperaku" class="btn btn-outline-secondary">Reset</a>
+  </div>
+</form>
+
+<p class="text-muted mb-3"><%= jumlah %> calon telah diperaku</p>
+
+<div class="pc-layout">
+  <%- include('_sidebar') %>
+
+  <div class="pc-main">
+    <% if (groups.length === 0) { %>
+      <div class="pc-ministry-block"><div class="p-5 text-center text-muted">Tiada calon diperaku setakat ini.</div></div>
+    <% } %>
+    <% groups.forEach(function(group) { %>
+      <section class="pc-ministry-block">
+        <div class="pc-ministry-head" style="background: linear-gradient(90deg, rgba(46,125,94,0.12), rgba(46,125,94,0.02));">
+          <h3><%= group.kementerian %></h3>
+          <span class="count" style="color:#2e7d5e;"><%= group.calon.length %> calon</span>
+        </div>
+        <div class="pc-calon-list">
+          <% group.calon.forEach(function(c) { %>
+            <%- include('_calon', { c: c }) %>
+          <% }) %>
+        </div>
+      </section>
+    <% }) %>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

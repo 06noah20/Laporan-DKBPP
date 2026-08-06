@@ -1,0 +1,20 @@
+<aside class="pc-sidebar">
+  <div class="pc-sidebar-head">Kementerian / Jabatan</div>
+  <ul class="pc-navlist">
+    <li>
+      <a href="<%= baseUrl %>" class="<%= !aktifKementerian ? 'active' : '' %>">
+        <span>Semua</span>
+        <span class="pc-badge"><%= kementerianCounts.reduce(function(s,k){return s+k.jumlah;}, 0) %></span>
+      </a>
+    </li>
+    <% kementerianCounts.forEach(function(k) { %>
+      <li>
+        <a href="<%= baseUrl %>?kementerian=<%= encodeURIComponent(k.kementerian) %>"
+           class="<%= aktifKementerian === k.kementerian ? 'active' : '' %>">
+          <span><%= k.kementerian %></span>
+          <span class="pc-badge"><%= k.jumlah %></span>
+        </a>
+      </li>
+    <% }) %>
+  </ul>
+</aside>

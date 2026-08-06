@@ -3,6 +3,7 @@ const path = require('path');
 
 const penerimaRoutes = require('./routes/penerima');
 const laporanRoutes = require('./routes/laporan');
+const pencalonanRoutes = require('./routes/pencalonan');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/laporan', laporanRoutes);
+app.use('/pencalonan', pencalonanRoutes);
 app.use('/', penerimaRoutes);
 
 app.use((req, res) => {

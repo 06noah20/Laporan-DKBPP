@@ -1,0 +1,111 @@
+<%- include('../partials/header', { title: title }) %>
+
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h3 class="mb-1"><%= record.nama %></h3>
+    <p class="text-muted mb-0">
+      <%= record.kementerian %> &middot; <%= record.kategoriPencalonan %>
+    </p>
+  </div>
+  <div class="text-end">
+    <% if (record.status === 'diperaku') { %>
+      <span class="badge bg-success fs-6 mb-2">DIPERAKU</span><br>
+      <form action="/pencalonan/<%= record.id %>/batal-peraku" method="post"
+            onsubmit="return confirm('Batalkan peraku bagi calon ini?');">
+        <button type="submit" class="btn btn-outline-danger btn-sm">Batal Peraku</button>
+      </form>
+    <% } else { %>
+      <span class="badge bg-secondary fs-6 mb-2">BELUM DIPERAKU</span><br>
+      <form action="/pencalonan/<%= record.id %>/peraku" method="post" class="d-flex gap-2">
+        <input type="text" name="diperakuOleh" class="form-control form-control-sm" placeholder="Nama Peraku">
+        <button type="submit" class="btn btn-success btn-sm text-nowrap">PERAKU</button>
+      </form>
+    <% } %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card mb-3">
+      <div class="card-header">Maklumat Calon</div>
+      <div class="card-body">
+        <table class="table table-sm table-borderless mb-0">
+          <tr><th style="width:220px">Kod</th><td><%= record.kod %></td></tr>
+          <tr><th>No. Kad Pengenalan</th><td><%= record.noKadPengenalan %></td></tr>
+          <tr><th>No. Rujukan</th><td><%= record.noRujukanA || '-' %></td></tr>
+          <tr><th>Umur</th><td><%= record.umur || '-' %></td></tr>
+          <tr><th>Jawatan</th><td><%= record.jawatan %></td></tr>
+          <tr><th>Gred Gaji</th><td><%= record.gredGaji || '-' %></td></tr>
+          <tr><th>Tempoh Lantikan Pertama</th><td><%= record.tempohLantikanPertama || '-' %></td></tr>
+          <tr><th>Tempoh Lantikan Sekarang</th><td><%= record.tempohLantikanSekarang || '-' %></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header">Anugerah Diterima / Catatan</div>
+      <div class="card-body">
+        <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;"><%= record.anugerahDiterima || 'Tiada' %></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card mb-3">
+      <div class="card-body text-center">
+        <% if (record.gambar) { %>
+          <img class="pc-detail-photo mx-auto" src="<%= record.gambar %>" alt="Gambar <%= record.nama %>">
+        <% } else { %>
+          <div class="pc-photo-placeholder mx-auto" style="max-width:320px; border-radius:12px;"><%= (record.nama || '?').trim().charAt(0) %></div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header">Pencalonan</div>
+      <div class="card-body">
+        <table class="table table-sm table-borderless mb-0">
+          <tr><th style="width:120px">Anugerah</th><td><%= record.anugerah %></td></tr>
+          <tr><th>Kategori</th><td><%= record.kategoriPencalonan %></td></tr>
+          <tr><th>Kementerian</th><td><%= record.kementerian %></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header">Maklumat Tambahan</div>
+      <div class="card-body">
+        <form action="/pencalonan/<%= record.id %>/maklumat" method="post">
+          <div class="mb-2">
+            <label class="form-label">Bangsa</label>
+            <select class="form-select form-select-sm" name="bangsa">
+              <option value="" <%= record.bangsa === '' ? 'selected' : '' %>>- Belum Dinyatakan -</option>
+              <% BANGSA.forEach(function(b) { %>
+                <option value="<%= b %>" <%= record.bangsa === b ? 'selected' : '' %>><%= b %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Skim Perkhidmatan</label>
+            <input type="text" class="form-control form-control-sm" name="skim" value="<%= record.skim %>">
+          </div>
+          <button type="submit" class="btn btn-sm btn-outline-primary w-100">Kemaskini</button>
+        </form>
+      </div>
+    </div>
+
+    <% if (record.status === 'diperaku') { %>
+    <div class="card mb-3">
+      <div class="card-header">Status Peraku</div>
+      <div class="card-body">
+        <p class="mb-1"><strong>Diperaku Oleh:</strong> <%= record.diperakuOleh || '-' %></p>
+        <p class="mb-0"><strong>Tarikh:</strong> <%= new Date(record.tarikhPeraku).toLocaleString('ms-MY') %></p>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<a href="/pencalonan" class="btn btn-outline-secondary">&laquo; Kembali ke Senarai Pencalonan</a>
+
+<%- include('../partials/footer') %>
