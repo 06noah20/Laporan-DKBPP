@@ -1,21 +1,16 @@
 <%- include('../partials/header', { title: title }) %>
 
 <h3 class="mb-1">Senarai Pencalonan DKBPP</h3>
-<p class="text-muted">Calon disusun mengikut kementerian/jabatan. Hanya calon yang belum diperaku dipaparkan di sini.</p>
+<p class="text-muted">Pilih kementerian/jabatan di sebelah kiri. Hanya calon yang belum diperaku dipaparkan di sini.</p>
 
 <form class="row g-2 mb-3" method="get" action="/pencalonan">
-  <div class="col-md-3">
+  <% if (filters.kementerian) { %>
+    <input type="hidden" name="kementerian" value="<%= filters.kementerian %>">
+  <% } %>
+  <div class="col-md-4">
     <input type="text" class="form-control" name="q" placeholder="Cari nama / No. KP / jawatan" value="<%= filters.q %>">
   </div>
   <div class="col-md-3">
-    <select class="form-select" name="kementerian">
-      <option value="">Semua Kementerian/Jabatan</option>
-      <% kementerianList.forEach(function(k) { %>
-        <option value="<%= k %>" <%= filters.kementerian === k ? 'selected' : '' %>><%= k %></option>
-      <% }) %>
-    </select>
-  </div>
-  <div class="col-md-2">
     <select class="form-select" name="kategoriPencalonan">
       <option value="">Semua Kategori</option>
       <% kategoriList.forEach(function(k) { %>
@@ -23,7 +18,7 @@
       <% }) %>
     </select>
   </div>
-  <div class="col-md-2">
+  <div class="col-md-3">
     <select class="form-select" name="anugerah">
       <option value="">Semua Anugerah</option>
       <% anugerahList.forEach(function(a) { %>
@@ -37,49 +32,29 @@
   </div>
 </form>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <span class="text-muted"><%= jumlah %> calon belum diperaku</span>
-</div>
+<p class="text-muted mb-3"><%= jumlah %> calon belum diperaku</p>
 
-<% if (groups.length === 0) { %>
-  <p class="text-center text-muted">Tiada calon dijumpai.</p>
-<% } %>
+<div class="pc-layout">
+  <%- include('_sidebar') %>
 
-<% groups.forEach(function(group) { %>
-  <div class="card mb-3">
-    <div class="card-header bg-dark text-white d-flex justify-content-between">
-      <span><%= group.kementerian %></span>
-      <span class="badge bg-light text-dark"><%= group.calon.length %> calon</span>
-    </div>
-    <div class="table-responsive">
-      <table class="table table-striped table-bordered align-middle mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>Nama</th>
-            <th>No. KP</th>
-            <th>Jawatan</th>
-            <th>Gred/Skim</th>
-            <th>Anugerah</th>
-            <th>Kategori</th>
-            <th>Tindakan</th>
-          </tr>
-        </thead>
-        <tbody>
+  <div class="pc-main">
+    <% if (groups.length === 0) { %>
+      <div class="pc-ministry-block"><div class="p-5 text-center text-muted">Tiada calon dijumpai.</div></div>
+    <% } %>
+    <% groups.forEach(function(group) { %>
+      <section class="pc-ministry-block" id="k-<%= group.kementerian.replace(/[^a-zA-Z0-9]/g,'-') %>">
+        <div class="pc-ministry-head">
+          <h3><%= group.kementerian %></h3>
+          <span class="count"><%= group.calon.length %> calon</span>
+        </div>
+        <div class="pc-card-grid">
           <% group.calon.forEach(function(c) { %>
-            <tr>
-              <td><a href="/pencalonan/<%= c.id %>"><%= c.nama %></a></td>
-              <td><%= c.noKadPengenalan %></td>
-              <td><%= c.jawatan %></td>
-              <td><%= c.gredGaji || '-' %></td>
-              <td><%= c.anugerah %></td>
-              <td><%= c.kategoriPencalonan %></td>
-              <td><a href="/pencalonan/<%= c.id %>" class="btn btn-sm btn-outline-primary">Lihat</a></td>
-            </tr>
+            <%- include('_card', { c: c }) %>
           <% }) %>
-        </tbody>
-      </table>
-    </div>
+        </div>
+      </section>
+    <% }) %>
   </div>
-<% }) %>
+</div>
 
 <%- include('../partials/footer') %>

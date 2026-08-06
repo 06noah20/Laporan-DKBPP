@@ -1,0 +1,19 @@
+<a class="pc-card" href="/pencalonan/<%= c.id %>">
+  <% if (c.gambar) { %>
+    <img class="pc-photo" src="<%= c.gambar %>" alt="Gambar <%= c.nama %>" loading="lazy">
+  <% } else { %>
+    <div class="pc-photo-placeholder"><%= (c.nama || '?').trim().charAt(0) %></div>
+  <% } %>
+  <div class="pc-card-body">
+    <div class="pc-card-name"><%= c.nama %></div>
+    <div class="pc-card-jawatan"><%= c.jawatan %></div>
+    <div class="pc-card-meta">
+      <span class="pc-card-gred"><%= c.gredGaji || '—' %></span>
+      <% if (c.status === 'diperaku') { %>
+        <span class="pc-status ok">Diperaku</span>
+      <% } else { %>
+        <span class="pc-status pending">Belum</span>
+      <% } %>
+    </div>
+  </div>
+</a>

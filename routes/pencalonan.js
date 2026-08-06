@@ -32,6 +32,9 @@ router.get('/', (req, res) => {
     groups,
     filters,
     jumlah: records.length,
+    kementerianCounts: db.kementerianCounts('belum_diperaku'),
+    aktifKementerian: filters.kementerian,
+    baseUrl: '/pencalonan',
     ...filterLists(),
   });
 });
@@ -46,6 +49,9 @@ router.get('/diperaku', (req, res) => {
     groups,
     filters,
     jumlah: records.length,
+    kementerianCounts: db.kementerianCounts('diperaku'),
+    aktifKementerian: filters.kementerian,
+    baseUrl: '/pencalonan/diperaku',
     ...filterLists(),
   });
 });

@@ -52,6 +52,16 @@
 
   <div class="col-md-4">
     <div class="card mb-3">
+      <div class="card-body text-center">
+        <% if (record.gambar) { %>
+          <img class="pc-detail-photo mx-auto" src="<%= record.gambar %>" alt="Gambar <%= record.nama %>">
+        <% } else { %>
+          <div class="pc-photo-placeholder mx-auto" style="max-width:320px; border-radius:12px;"><%= (record.nama || '?').trim().charAt(0) %></div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="card mb-3">
       <div class="card-header">Pencalonan</div>
       <div class="card-body">
         <table class="table table-sm table-borderless mb-0">
