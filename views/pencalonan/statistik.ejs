@@ -1,0 +1,65 @@
+<%- include('../partials/header', { title: title }) %>
+
+<h3 class="mb-3">Statistik Pencalonan DKBPP</h3>
+
+<div class="row mb-4">
+  <div class="col-md-4">
+    <div class="card text-center">
+      <div class="card-body">
+        <h2 class="mb-0"><%= stat.total %></h2>
+        <p class="text-muted mb-0">Jumlah Calon</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-center border-success">
+      <div class="card-body">
+        <h2 class="mb-0 text-success"><%= stat.diperaku %></h2>
+        <p class="text-muted mb-0">Telah Diperaku</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-center border-secondary">
+      <div class="card-body">
+        <h2 class="mb-0 text-secondary"><%= stat.belumDiperaku %></h2>
+        <p class="text-muted mb-0">Belum Diperaku</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%
+function renderTally(judul, data, total) {
+%>
+  <div class="card mb-4">
+    <div class="card-header"><%= judul %></div>
+    <div class="card-body">
+      <% if (data.length === 0) { %>
+        <p class="text-muted mb-0">Tiada data.</p>
+      <% } %>
+      <% data.forEach(function(row) { %>
+        <% const peratus = total ? Math.round((row.jumlah / total) * 1000) / 10 : 0; %>
+        <div class="mb-2">
+          <div class="d-flex justify-content-between">
+            <span><%= row.label %></span>
+            <span class="text-muted"><%= row.jumlah %> calon (<%= row.diperaku %> diperaku) &middot; <%= peratus %>%</span>
+          </div>
+          <div class="progress" style="height: 10px;">
+            <div class="progress-bar bg-dark" role="progressbar" style="width: <%= peratus %>%"></div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+<%
+}
+%>
+
+<% renderTally('Mengikut Kementerian/Jabatan', stat.ikutKementerian, stat.total); %>
+<% renderTally('Mengikut Skim Perkhidmatan', stat.ikutSkim, stat.total); %>
+<% renderTally('Mengikut Bangsa', stat.ikutBangsa, stat.total); %>
+<% renderTally('Mengikut Kategori Pencalonan', stat.ikutKategori, stat.total); %>
+<% renderTally('Mengikut Anugerah', stat.ikutAnugerah, stat.total); %>
+
+<%- include('../partials/footer') %>
