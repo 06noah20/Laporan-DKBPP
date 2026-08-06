@@ -1,0 +1,56 @@
+<div class="pc-calon <%= c.status === 'diperaku' ? 'is-diperaku' : '' %>">
+  <div>
+    <% if (c.gambar) { %>
+      <img class="pc-photo" src="<%= c.gambar %>" alt="Gambar <%= c.nama %>" loading="lazy">
+    <% } else { %>
+      <div class="pc-photo-placeholder"><%= (c.nama || '?').trim().charAt(0) %></div>
+    <% } %>
+  </div>
+
+  <div class="pc-calon-body">
+    <div class="pc-calon-head">
+      <div>
+        <div class="pc-calon-name"><%= c.nama %></div>
+      </div>
+      <% if (c.status === 'diperaku') { %>
+        <span class="pc-status ok">DIPERAKU</span>
+      <% } else { %>
+        <span class="pc-status pending">BELUM DIPERAKU</span>
+      <% } %>
+    </div>
+    <div class="pc-calon-jawatan"><%= c.jawatan %></div>
+
+    <div class="pc-fields">
+      <div class="pc-field"><div class="k">Kod</div><div class="v"><%= c.kod %></div></div>
+      <div class="pc-field"><div class="k">No. Kad Pengenalan</div><div class="v"><%= c.noKadPengenalan %></div></div>
+      <div class="pc-field"><div class="k">Umur</div><div class="v"><%= c.umur || '-' %></div></div>
+      <div class="pc-field"><div class="k">Gred Gaji</div><div class="v"><%= c.gredGaji || '-' %></div></div>
+      <div class="pc-field"><div class="k">Skim Perkhidmatan</div><div class="v"><%= c.skim || '-' %></div></div>
+      <div class="pc-field"><div class="k">Anugerah</div><div class="v"><%= c.anugerah %></div></div>
+      <div class="pc-field"><div class="k">Kategori Pencalonan</div><div class="v"><%= c.kategoriPencalonan %></div></div>
+      <div class="pc-field"><div class="k">Tempoh Lantikan Pertama</div><div class="v"><%= c.tempohLantikanPertama || '-' %></div></div>
+      <div class="pc-field"><div class="k">Tempoh Lantikan Sekarang</div><div class="v"><%= c.tempohLantikanSekarang || '-' %></div></div>
+      <div class="pc-field"><div class="k">Bangsa</div><div class="v"><%= c.bangsa || 'Belum dinyatakan' %></div></div>
+    </div>
+
+    <div class="pc-notes-label">Anugerah Diterima / Catatan</div>
+    <div class="pc-notes"><%= c.anugerahDiterima || 'Tiada' %></div>
+
+    <div class="pc-peraku-bar">
+      <% if (c.status === 'diperaku') { %>
+        <div class="pc-diperaku-box">
+          <span>&#10004; Diperaku oleh <strong><%= c.diperakuOleh || '-' %></strong><%= c.tarikhPeraku ? ' &middot; ' + new Date(c.tarikhPeraku).toLocaleDateString('ms-MY') : '' %></span>
+          <form action="/pencalonan/<%= c.id %>/batal-peraku" method="post"
+                onsubmit="return confirm('Batalkan peraku bagi calon ini?');">
+            <button type="submit" class="pc-btn-batal">Batal Peraku</button>
+          </form>
+        </div>
+      <% } else { %>
+        <form action="/pencalonan/<%= c.id %>/peraku" method="post" class="pc-peraku-box">
+          <input type="text" name="diperakuOleh" placeholder="Nama peraku (pilihan)">
+          <button type="submit" class="pc-btn-peraku">PERAKU</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+</div>

@@ -47,9 +47,9 @@
           <h3><%= group.kementerian %></h3>
           <span class="count"><%= group.calon.length %> calon</span>
         </div>
-        <div class="pc-card-grid">
+        <div class="pc-calon-list">
           <% group.calon.forEach(function(c) { %>
-            <%- include('_card', { c: c }) %>
+            <%- include('_calon', { c: c }) %>
           <% }) %>
         </div>
       </section>

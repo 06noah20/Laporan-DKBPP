@@ -115,28 +115,25 @@ body {
   white-space: nowrap;
 }
 
-/* --- Grid kad calon dengan gambar --- */
-.pc-card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+/* --- Senarai laporan penuh setiap calon (tanpa perlu klik) --- */
+.pc-calon-list {
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   padding: 18px;
 }
-.pc-card {
-  display: flex;
-  flex-direction: column;
+.pc-calon {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 20px;
   border: 1px solid rgba(22, 35, 62, 0.1);
-  border-radius: 10px;
-  overflow: hidden;
+  border-radius: 12px;
   background: #fbfbfc;
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.13s ease, box-shadow 0.13s ease, border-color 0.13s ease;
+  padding: 18px;
 }
-.pc-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 26px -14px rgba(22, 35, 62, 0.4);
-  border-color: rgba(156, 114, 32, 0.5);
+.pc-calon.is-diperaku {
+  border-color: rgba(46, 125, 94, 0.4);
+  background: rgba(46, 125, 94, 0.03);
 }
 .pc-photo {
   width: 100%;
@@ -145,6 +142,8 @@ body {
   object-position: top center;
   background: #e7ebf0;
   display: block;
+  border-radius: 10px;
+  border: 1px solid rgba(22, 35, 62, 0.1);
 }
 .pc-photo-placeholder {
   width: 100%;
@@ -154,53 +153,143 @@ body {
   justify-content: center;
   background: #e7ebf0;
   color: #9aa5b8;
-  font-size: 34px;
+  font-size: 44px;
   font-weight: 700;
+  border-radius: 10px;
 }
-.pc-card-body {
-  padding: 11px 12px 13px;
+.pc-calon-body { min-width: 0; display: flex; flex-direction: column; }
+.pc-calon-head {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 4px;
 }
-.pc-card-name {
-  font-size: 13px;
+.pc-calon-name {
+  font-size: 16px;
   font-weight: 700;
   color: #16233e;
   line-height: 1.25;
 }
-.pc-card-jawatan {
-  font-size: 11.5px;
-  color: #64748b;
-  line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.pc-card-meta {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding-top: 6px;
-}
-.pc-card-gred {
-  font-size: 11px;
+.pc-calon-jawatan {
+  font-size: 13px;
   color: #4b5872;
-  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  margin-bottom: 12px;
 }
 .pc-status {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 100px;
   white-space: nowrap;
+  flex: 0 0 auto;
 }
-.pc-status.ok { background: rgba(46, 125, 94, 0.12); color: #2e7d5e; }
+.pc-status.ok { background: rgba(46, 125, 94, 0.14); color: #2e7d5e; }
 .pc-status.pending { background: rgba(100, 116, 139, 0.13); color: #64748b; }
+
+/* grid medan maklumat lengkap */
+.pc-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px 18px;
+  margin-bottom: 12px;
+}
+.pc-field .k {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9c7220;
+  font-weight: 700;
+  margin-bottom: 1px;
+}
+.pc-field .v {
+  font-size: 12.5px;
+  color: #16233e;
+}
+.pc-notes-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9c7220;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.pc-notes {
+  white-space: pre-wrap;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #4b5872;
+  background: #fff;
+  border: 1px solid rgba(22, 35, 62, 0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+/* kotak PERAKU hijau di bawah kanan */
+.pc-peraku-bar {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+}
+.pc-peraku-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(46, 125, 94, 0.10);
+  border: 1px solid rgba(46, 125, 94, 0.35);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.pc-peraku-box input[type="text"] {
+  font-size: 12.5px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid rgba(46, 125, 94, 0.35);
+  background: #fff;
+  color: #16233e;
+  min-width: 150px;
+}
+.pc-btn-peraku {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 8px 20px;
+  border-radius: 7px;
+  border: 1px solid #2e7d5e;
+  background: #2e7d5e;
+  color: #fff;
+  cursor: pointer;
+}
+.pc-btn-peraku:hover { background: #276b50; }
+.pc-diperaku-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(46, 125, 94, 0.12);
+  border: 1px solid rgba(46, 125, 94, 0.4);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #2e7d5e;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.pc-btn-batal {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 7px;
+  border: 1px solid rgba(46, 125, 94, 0.4);
+  background: #fff;
+  color: #2e7d5e;
+  cursor: pointer;
+}
+.pc-btn-batal:hover { background: rgba(46, 125, 94, 0.08); }
+
+@media (max-width: 560px) {
+  .pc-calon { grid-template-columns: 1fr; }
+  .pc-photo, .pc-photo-placeholder { max-width: 200px; }
+}
 
 /* --- Detail calon: gambar penuh --- */
 .pc-detail-photo {
