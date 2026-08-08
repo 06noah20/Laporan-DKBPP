@@ -1,0 +1,2661 @@
+<title>Sistem Pelaporan Pencalonan DKBPP</title>
+<style>
+  :root {
+    --paper: #EEF1F4; --panel: #FFFFFF; --ink: #16233E; --ink-soft: #4B5872;
+    --line: rgba(22,35,62,0.13); --gold: #9C7220; --gold-soft: #B8862E;
+    --gold-tint: rgba(156,114,32,0.10); --ok: #2E7D5E; --ok-tint: rgba(46,125,94,0.12);
+    --pending: #64748B; --pending-tint: rgba(100,116,139,0.12);
+    --shadow: 0 1px 2px rgba(22,35,62,0.06), 0 8px 24px -12px rgba(22,35,62,0.18);
+  }
+  :root[data-theme="dark"] {
+    --paper: #10151F; --panel: #171E2B; --ink: #E9ECF3; --ink-soft: #A6AFC2;
+    --line: rgba(233,236,243,0.12); --gold: #D3A94A; --gold-soft: #E4BE68;
+    --gold-tint: rgba(211,169,74,0.14); --ok: #56C795; --ok-tint: rgba(86,199,149,0.14);
+    --pending: #93A0B8; --pending-tint: rgba(147,160,184,0.14);
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #10151F; --panel: #171E2B; --ink: #E9ECF3; --ink-soft: #A6AFC2;
+      --line: rgba(233,236,243,0.12); --gold: #D3A94A; --gold-soft: #E4BE68;
+      --gold-tint: rgba(211,169,74,0.14); --ok: #56C795; --ok-tint: rgba(86,199,149,0.14);
+      --pending: #93A0B8; --pending-tint: rgba(147,160,184,0.14);
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased; }
+  body { overflow-x: hidden; }
+  .serif { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  .masthead { border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--panel), var(--paper)); }
+  .masthead-inner { max-width: 1240px; margin: 0 auto; padding: 28px 26px 20px; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 11.5px;
+    color: var(--gold); font-weight: 700; margin: 0 0 6px; }
+  .masthead h1 { font-size: clamp(25px,3.2vw,33px); margin: 0 0 6px; font-weight: 600;
+    letter-spacing: 0.01em; text-wrap: balance; }
+  .masthead p { margin: 0; color: var(--ink-soft); font-size: 14px; max-width: 64ch; }
+  .gold-rule { height: 2px; width: 60px; background: linear-gradient(90deg,var(--gold),var(--gold-soft));
+    margin: 13px 0 0; border-radius: 2px; }
+
+  .stats { max-width: 1240px; margin: -16px auto 0; padding: 0 26px;
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 13px; position: relative; z-index: 2; }
+  .stat-tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 15px 17px; box-shadow: var(--shadow); }
+  .stat-tile .n { font-size: 25px; font-weight: 700; line-height: 1; }
+  .stat-tile .n.ok { color: var(--ok); } .stat-tile .n.pending { color: var(--pending); }
+  .stat-tile .label { margin-top: 5px; font-size: 12px; color: var(--ink-soft); }
+
+  .tabbar { max-width: 1240px; margin: 22px auto 0; padding: 0 26px; display: flex; gap: 4px;
+    border-bottom: 1px solid var(--line); }
+  .tab { appearance: none; border: none; background: none; font: inherit; font-size: 14px;
+    font-weight: 600; color: var(--ink-soft); padding: 10px 15px; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--ink); border-bottom-color: var(--gold); }
+  .tab .count { font-variant-numeric: tabular-nums; color: var(--ink-soft); font-weight: 500; }
+
+  main { max-width: 1240px; margin: 0 auto; padding: 20px 26px 70px; }
+  .view { display: none; } .view.active { display: block; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 16px; }
+  .toolbar input[type="search"], .toolbar select { font: inherit; font-size: 13.5px;
+    padding: 8px 11px; border-radius: 7px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--ink); }
+  .toolbar input[type="search"] { flex: 1 1 220px; min-width: 170px; }
+  .result-count { font-size: 12.5px; color: var(--ink-soft); margin: 0 0 14px; }
+
+  /* two-column layout */
+  .layout { display: grid; grid-template-columns: 268px 1fr; gap: 20px; align-items: start; }
+  .sidebar { position: sticky; top: 14px; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; display: flex;
+    flex-direction: column; max-height: calc(100vh - 28px); }
+  .sidebar-head { padding: 12px 15px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--gold); background: var(--gold-tint);
+    border-bottom: 1px solid var(--line); }
+  .navlist { list-style: none; margin: 0; padding: 6px; overflow-y: auto; }
+  .navlist button { display: flex; width: 100%; align-items: center; justify-content: space-between;
+    gap: 10px; padding: 9px 11px; border-radius: 8px; border: none; background: none; cursor: pointer;
+    color: var(--ink-soft); font: inherit; font-size: 12.5px; font-weight: 500; line-height: 1.3;
+    text-align: left; }
+  .navlist button:hover { background: var(--gold-tint); color: var(--ink); }
+  .navlist button.active { background: var(--ink); color: var(--panel); font-weight: 600; }
+  .navlist button .badge { flex: 0 0 auto; font-size: 11px; font-weight: 700; padding: 1px 8px;
+    border-radius: 100px; background: rgba(128,128,128,0.16); color: var(--ink-soft);
+    font-variant-numeric: tabular-nums; }
+  .navlist button.active .badge { background: rgba(255,255,255,0.22); color: var(--panel); }
+
+  .main-col { min-width: 0; }
+  .ministry-block { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
+  .ministry-head { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 13px 17px; background: var(--gold-tint); border-bottom: 1px solid var(--line); }
+  .ministry-head.ok { background: var(--ok-tint); }
+  .ministry-head h3 { margin: 0; font-size: 14.5px; font-weight: 700; }
+  .ministry-head .cnt { font-size: 11.5px; font-weight: 700; color: var(--gold); background: var(--panel);
+    border: 1px solid var(--line); padding: 2px 9px; border-radius: 100px; white-space: nowrap; }
+  .ministry-head.ok .cnt { color: var(--ok); }
+
+  .empty-state { text-align: center; padding: 54px 20px; color: var(--ink-soft); font-size: 14px; }
+  .pill { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 3px 10px;
+    border-radius: 100px; white-space: nowrap; flex: 0 0 auto; }
+  .pill.ok { background: var(--ok-tint); color: var(--ok); }
+  .pill.pending { background: var(--pending-tint); color: var(--pending); }
+
+  /* senarai laporan penuh setiap calon (inline, tanpa klik) */
+  .calon-list { display: flex; flex-direction: column; gap: 16px; padding: 17px; }
+  .calon { display: grid; grid-template-columns: 180px 1fr; gap: 20px;
+    border: 1px solid var(--line); border-radius: 12px; background: var(--paper); padding: 17px; }
+  .calon.is-diperaku { border-color: rgba(46,125,94,0.42); background: var(--ok-tint); }
+  .photo { width: 100%; aspect-ratio: 3/4; object-fit: cover; object-position: top center;
+    background: #d9dee6; display: block; border-radius: 10px; border: 1px solid var(--line); }
+  .photo-ph { width: 100%; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center;
+    font-size: 42px; font-weight: 700; color: #9aa5b8; background: #d9dee6; border-radius: 10px; }
+  .calon-body { min-width: 0; display: flex; flex-direction: column; }
+  .calon-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .calon-name { font-size: 16px; font-weight: 700; line-height: 1.25; }
+  .calon-jawatan { font-size: 12.5px; color: var(--ink-soft); line-height: 1.4; margin: 3px 0 12px; }
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px,1fr));
+    gap: 8px 18px; margin-bottom: 12px; }
+  .field .k { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gold);
+    font-weight: 700; margin-bottom: 1px; }
+  .field .v { font-size: 12.5px; }
+  .notes-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gold);
+    font-weight: 700; margin-bottom: 4px; }
+  .notes { font-size: 12px; line-height: 1.5; color: var(--ink-soft);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .note-item { display: grid; grid-template-columns: 88px 1fr; gap: 12px; padding: 3px 0; }
+  .note-item + .note-item { border-top: 1px solid var(--line); }
+  .note-thn { font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums;
+    text-align: left; white-space: nowrap; }
+  .note-teks { color: var(--ink-soft); }
+  .extra-row { display: flex; gap: 8px; margin-top: 12px; }
+  .extra-row select, .extra-row input { font: inherit; font-size: 12px; padding: 6px 9px;
+    border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); flex: 1; }
+
+  /* kotak PERAKU hijau di bawah kanan */
+  .peraku-bar { margin-top: 14px; display: flex; justify-content: flex-end; }
+  .peraku-box { display: flex; align-items: center; gap: 8px; background: rgba(46,125,94,0.10);
+    border: 1px solid rgba(46,125,94,0.38); border-radius: 10px; padding: 10px 12px; }
+  .peraku-box input[type="text"] { font: inherit; font-size: 12.5px; padding: 7px 10px; border-radius: 7px;
+    border: 1px solid rgba(46,125,94,0.38); background: var(--panel); color: var(--ink); min-width: 150px; }
+  .btn-peraku { font: inherit; font-size: 13px; font-weight: 700; letter-spacing: 0.03em; padding: 8px 20px;
+    border-radius: 7px; border: 1px solid var(--ok); background: var(--ok); color: #fff; cursor: pointer; }
+  .btn-peraku:hover { filter: brightness(1.06); }
+  .diperaku-box { display: flex; align-items: center; gap: 12px; background: rgba(46,125,94,0.14);
+    border: 1px solid rgba(46,125,94,0.42); border-radius: 10px; padding: 10px 14px; color: var(--ok);
+    font-size: 12.5px; font-weight: 600; }
+  .btn-batal { font: inherit; font-size: 11.5px; font-weight: 600; padding: 5px 12px; border-radius: 7px;
+    border: 1px solid rgba(46,125,94,0.42); background: var(--panel); color: var(--ok); cursor: pointer; }
+  .btn-batal:hover { filter: brightness(0.97); }
+
+  /* statistik */
+  .stat-block { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .stat-block h3 { margin: 0 0 14px; font-size: 13px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--ink-soft); }
+  .bar-row { margin-bottom: 11px; } .bar-row:last-child { margin-bottom: 0; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; gap: 12px; }
+  .bar-label .val { color: var(--ink-soft); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .bar-track { height: 8px; border-radius: 100px; background: var(--pending-tint); overflow: hidden; display: flex; }
+  .bar-fill-ok { height: 100%; background: var(--ok); }
+  .bar-fill-pending { height: 100%; background: var(--gold-soft); }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  footer.note { max-width: 1240px; margin: 6px auto 40px; padding: 0 26px; font-size: 12px;
+    color: var(--ink-soft); line-height: 1.6; }
+  footer.note strong { color: var(--ink); }
+  footer.note code { background: var(--gold-tint); padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; max-height: none; } .navlist { max-height: 240px; }
+  }
+  @media (max-width: 560px) {
+    .calon { grid-template-columns: 1fr; }
+    .photo, .photo-ph { max-width: 190px; }
+  }
+  @media (max-width: 620px) { .stats { grid-template-columns: repeat(2,1fr); } .stat-grid { grid-template-columns: 1fr; } }
+</style>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">Sistem Laporan DKBPP &middot; Versi Local</p>
+    <h1 class="serif">Pelaporan Pencalonan DKBPP</h1>
+    <p>Darjah Kebesaran, Bintang dan Pingat Persekutuan &mdash; setiap kementerian menyenaraikan calonnya dengan maklumat lengkap dan gambar penuh. Pilih kementerian di sebelah kiri; peraku setiap calon melalui kotak hijau di bawah kanan.</p>
+    <div class="gold-rule"></div>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat-tile"><div class="n tabular" id="stat-total">0</div><div class="label">Jumlah Calon</div></div>
+  <div class="stat-tile"><div class="n tabular ok" id="stat-diperaku">0</div><div class="label">Telah Diperaku</div></div>
+  <div class="stat-tile"><div class="n tabular pending" id="stat-belum">0</div><div class="label">Belum Diperaku</div></div>
+  <div class="stat-tile"><div class="n tabular" id="stat-kementerian">0</div><div class="label">Kementerian / Jabatan</div></div>
+</div>
+
+<nav class="tabbar">
+  <button class="tab active" data-view="senarai">Senarai Pencalonan <span class="count" id="tab-count-senarai"></span></button>
+  <button class="tab" data-view="diperaku">Senarai Diperaku <span class="count" id="tab-count-diperaku"></span></button>
+  <button class="tab" data-view="statistik">Statistik</button>
+</nav>
+
+<main>
+  <section class="view active" id="view-senarai">
+    <div class="toolbar">
+      <input type="search" id="f-q" placeholder="Cari nama / No. KP / jawatan&hellip;">
+      <select id="f-kategori"><option value="">Semua Kategori</option></select>
+      <select id="f-anugerah"><option value="">Semua Anugerah</option></select>
+    </div>
+    <p class="result-count" id="senarai-result-count"></p>
+    <div class="layout">
+      <aside class="sidebar"><div class="sidebar-head">Kementerian / Jabatan</div>
+        <ul class="navlist" id="senarai-nav"></ul></aside>
+      <div class="main-col" id="senarai-main"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-diperaku">
+    <p class="result-count" id="diperaku-result-count"></p>
+    <div class="layout">
+      <aside class="sidebar"><div class="sidebar-head">Kementerian / Jabatan</div>
+        <ul class="navlist" id="diperaku-nav"></ul></aside>
+      <div class="main-col" id="diperaku-main"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-statistik">
+    <div class="stat-block"><h3>Mengikut Kementerian / Jabatan</h3><div id="stat-kementerian-bars"></div></div>
+    <div class="stat-grid">
+      <div class="stat-block"><h3>Mengikut Skim Perkhidmatan</h3><div id="stat-skim-bars"></div></div>
+      <div class="stat-block"><h3>Mengikut Bangsa</h3><div id="stat-bangsa-bars"></div></div>
+      <div class="stat-block"><h3>Mengikut Kategori Pencalonan</h3><div id="stat-kategori-bars"></div></div>
+      <div class="stat-block"><h3>Mengikut Anugerah</h3><div id="stat-anugerah-bars"></div></div>
+    </div>
+  </section>
+</main>
+
+<footer class="note">
+  <strong>Versi local:</strong> Fail ini berjalan terus di komputer anda. Butang <strong>PERAKU</strong>,
+  navigasi kementerian, tapisan dan statistik semuanya berfungsi, dan <strong>perubahan (peraku, bangsa,
+  skim) disimpan dalam pelayar ini</strong> — kekal walaupun tutup pelayar/komputer, selagi anda tidak
+  memadam data pelayar (browsing data). Untuk simpanan berbentuk <em>fail</em> yang mudah disandar/dipindah,
+  guna kaedah <code>mula-sistem.bat</code> (versi pelayan).
+</footer>
+
+<script id="dkbpp-data" type="application/json">[
+  {
+    "id": 1,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "JABATAN PERDANA MENTERI",
+    "bil": "1",
+    "kod": "314",
+    "nama": "YM TENGKU AINA BINTI YTM TENGKU ISMAIL SHAH",
+    "noKadPengenalan": "680216-10-5728",
+    "noRujukanA": "A0917996",
+    "umur": 57,
+    "jawatan": "PENGARAH BAHAGIAN KOMERSIAL DAN PELABURAN, JABATAN PERANCANGAN BANDAR, PERBADANAN PUTRAJAYA",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "21 tahun",
+    "tempohLantikanSekarang": "11 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2016 DAN 2007\n2023-2025: AHLI JAWATANKUASA BIRO\nKEBUDAYAAN DAN SOSIAL, PUSPANITA\nKEBANGSAAN\n2020: AHLI KOMUNIKASI STRATEGI\nKEMENTERIAN WILAYAH\nPERSEKUTUAN DAN AGENSI\n2021: KETUA PENYELARAS PROGRAM\nDAN KEMPEN INTERNATIONAL BOARD\nON BOOKS FOR YOUNG PEOPLE\nCONGRESS (IBBY)\n2022-2023: TIMBALAN PENGERUSI\nBIRO KEBUDAYAAN &\nSOSIALPUSPANITA KEBANGSAAN",
+    "halamanSumber": 1,
+    "gambar": "/gambar/1.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 2,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "1",
+    "kod": "816",
+    "nama": "ENCIK AHMAD RIDZUAN BIN ISMAIL",
+    "noKadPengenalan": "650922-10-5517",
+    "noRujukanA": "A0198369",
+    "umur": 59,
+    "jawatan": "PENGURUS BESAR KANAN SEKTOR PEMATUHAN, LEMBAGA PEMBANGUNAN INDUSTRI PEMBINAAN MALAYSIA (CIDB)",
+    "gredGaji": "J54",
+    "tempohLantikanPertama": "35 tahun",
+    "tempohLantikanSekarang": "2 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2016, 2014 DAN 2006\n2024 : AHLI JAWATANKUASA PEMANDU\nICT, CIDB,JPICT (PERINGKAT JABATAN)\n2024 : AHLI JAWATANKUASA\nPEMBANGUAN PENGURUSAN FASILITI\n(FM) TEKNIKAL CIDB (PERINGKAT\nJABATAN)\n2022 : AHLI LEMBAGA PENGARAH, ABM\nSARAWAK (PERINGKAT JABATAN)\nBERSARA WAJIB PADA 22.09.2025",
+    "halamanSumber": 2,
+    "gambar": "/gambar/2.jpg",
+    "skim": "Skim J (Kejuruteraan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 3,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "2",
+    "kod": "817",
+    "nama": "YBRS. PUAN ZAINORA BINTI ZAINAL",
+    "noKadPengenalan": "660116-05-5278",
+    "noRujukanA": "",
+    "umur": 59,
+    "jawatan": "KETUA EKSEKUTIF II (PEMBANGUNAN) LEMBAGA PEMBANGUNAN INDUSTRI PEMBINAAN MALAYSIA (CIDB)",
+    "gredGaji": "VU7 Gred Utama C",
+    "tempohLantikanPertama": "27 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2022, 2019 DAN 2012\n2020 : PEMBENTANGAN KERTAS KERJA\nMESYUARAT MAJLIS TINDAKAN\nPEMBANGUNAN NEGERI MTPNG WPKL\n(PERINGKAT JABATAN)\n2020 : AHLI MESYUARAT CRISIS\nMANAGEMENT COMMITTEE COVID 19\nWILAYAH PERSEKUTUAN DI BAWAH\nMAJLIS TINDAKAN NEGARA(PERINGKAT\nKEMENTERIAN)\nCALON K.M.N. TAHUN 2024\nBERSARA WAJIB PADA 16.01.2026",
+    "halamanSumber": 2,
+    "gambar": "/gambar/3.jpg",
+    "skim": "Skim VU (Pengurusan Tertinggi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 4,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "3",
+    "kod": "820",
+    "nama": "SR. AHMAD FARRIN BIN MOKHTAR",
+    "noKadPengenalan": "680904-06-5387",
+    "noRujukanA": "A1085052",
+    "umur": 56,
+    "jawatan": "PENGARAH NEGERI CIDB NEGERI JOHOR, LEMBAGA PEMBANGUNAN INDUSTRI PEMBINAAN MALAYSIA (CIDB)",
+    "gredGaji": "J54",
+    "tempohLantikanPertama": "24 tahun",
+    "tempohLantikanSekarang": "4 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2020 DAN 2017\n2020-KINI : AHLI LEMBAGA PENASIHAT\nCONSTRUCTION RESEARCH INSTITUTE\nOF MALAYSIA (CREAM)(PERINGKAT\nJABATAN)\n2020-KINI : AHLI LEMBAGA PENGARAH\nCIDB HOLDINGS SDN. BHD.\n(PERINGKAT JABATAN)\n2020-KINI : AHLI LEMBAGA PENGARAH\nBUILDING COST INFORMATION\nSERVICES MALAYSIA SDN. BHD.\n(PERINGKAT JABATAN)\n2002 & 2011 : ANUGERAH KETUA\nEKSEKUTIF (PERINGKAT JABATAN)\nCALON J.S.M. TAHUN 2021",
+    "halamanSumber": 3,
+    "gambar": "/gambar/4.jpg",
+    "skim": "Skim J (Kejuruteraan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 5,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "4",
+    "kod": "827",
+    "nama": "ENCIK ABDUL RAZAK BIN HUSIN",
+    "noKadPengenalan": "680921-01-5971",
+    "noRujukanA": "A1046965",
+    "umur": 56,
+    "jawatan": "PENASIHAT UNDANG-UNDANG PEJABAT PENASIHAT UNDANG-UNDANG, LEMBAGA PEMBANGUNAN INDUSTRI PEMBINAAN MALAYSIA (CIDB)",
+    "gredGaji": "L54",
+    "tempohLantikanPertama": "31 tahun",
+    "tempohLantikanSekarang": "10 tahun",
+    "anugerahDiterima": "A.M.N. - 2015\nB.C.K.(Kedah) - 2010\nNota:\nAPC TAHUN 2014\n2024 : LEMBAGA PENGARAH CIDB IBS\nSDN BHD (PERINGKAT JABATAN)\n2024 : AHLI LEMBAGA PENGURUSAN\nPROJEK MALAYSIA (PM) -DERAF RANG\nUNDANG-UNDANG (PERINGKAT\nJABATAN)\n2024 : LEMBAGA PENGARAH AKADEMI\nBINAAN MALAYSIA SABAH (PERINGKAT\nJABATAN)\n2023 : ANUGERAH KHAS KETUA\nEKSEKUTIF (PERINGKAT JABATAN)",
+    "halamanSumber": 3,
+    "gambar": "/gambar/5.jpg",
+    "skim": "Skim L (Undang-undang)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 6,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "5",
+    "kod": "830",
+    "nama": "IR. TS. HUSAIN BIN OSMAN @ MOHAMED",
+    "noKadPengenalan": "700625-03-5543",
+    "noRujukanA": "A1604608",
+    "umur": 55,
+    "jawatan": "PENGARAH BAHAGIAN PENGURUSAN PROJEK, LEMBAGA LEBUHRAYA MALAYSIA",
+    "gredGaji": "J54",
+    "tempohLantikanPertama": "28 tahun",
+    "tempohLantikanSekarang": "4 tahun",
+    "anugerahDiterima": "B.S.K.(Kelantan) - 2019\nNota:\nAPC TAHUN 2014\n2000-KINI : AHLI KOPERASI LLM\n1996-KINI : AHLI BADAN KEBAJIKAN,\nSUKAN DAN SOSIAL (BKSS) , LLM\n2022 : AHLI PROFESIONAL LEMBAGA\nJURUTERA MALAYSIA\nCALON K.M.N. TAHUN 2023",
+    "halamanSumber": 4,
+    "gambar": "/gambar/6.jpg",
+    "skim": "Skim J (Kejuruteraan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 7,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "6",
+    "kod": "834",
+    "nama": "CIK SUZAITEE BINTI YUSOFF",
+    "noKadPengenalan": "700809-08-5430",
+    "noRujukanA": "A1655367",
+    "umur": 54,
+    "jawatan": "PENGARAH BAHAGIAN KEWANGAN DAN PENGURUSAN ASET, LEMBAGA LEBUHRAYA MALAYSIA",
+    "gredGaji": "WA54",
+    "tempohLantikanPertama": "28 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2021, 2016, 2009 DAN 2004\n2019-KINI : AHLI BADAN KEBAJIKAN,\nSUKAN DAN SOSIAL (BKSS) , LLM\n2019-KINI : AHLI PERNITA LLM\n2019-KINI : AHLI MALAYSIAN\nINSTITUTE OF ACCOUNTANTS\nCALON P.P.N. TAHUN 2019",
+    "halamanSumber": 4,
+    "gambar": "/gambar/7.jpg",
+    "skim": "Skim WA (Kewangan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 8,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "7",
+    "kod": "819",
+    "nama": "ENCIK SUHAIMI BIN MANSOR",
+    "noKadPengenalan": "730213-14-5225",
+    "noRujukanA": "A2235113",
+    "umur": 52,
+    "jawatan": "PENGURUS BESAR KANAN SEKTOR PENDAFTARAN DAN KREDITASI, LEMBAGA PEMBANGUNAN INDUSTRI PEMBINAAN MALAYSIA (CIDB)",
+    "gredGaji": "J54",
+    "tempohLantikanPertama": "29 tahun",
+    "tempohLantikanSekarang": "3 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2021 DAN 2008\n2024-2025 : PENGERUSI\nJAWATANKUASA TINDAKAN\nTATATERTIB KONTRAKTOR SESI\n2024-2025 : UNTUK CIDB (PERINGKAT\nJABATAN) 2023-2025 AHLI LEMBAGA\nPENGARAH AKADEMI BINAAN\nMALAYSIA (SELANGOR)(PERINGKAT\nJABATAN)\n2024 : AHLI LEMBAGA PENGARAH,\nAKADEMI BINAAN MALAYSIA\n(SABAH)(PERINGKAT JABATAN)\n2024 : AHLI LEMBAGA PENGARAH,\nAKADEMI BINAAN MALAYSIA\n(JOHOR)(PERINGKAT JABATAN)",
+    "halamanSumber": 5,
+    "gambar": "/gambar/8.jpg",
+    "skim": "Skim J (Kejuruteraan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 9,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "8",
+    "kod": "828",
+    "nama": "PUAN JUNAIDAH BINTI JAMNI",
+    "noKadPengenalan": "730519-06-5594",
+    "noRujukanA": "A2461933",
+    "umur": 52,
+    "jawatan": "PENGARAH KANAN PENGURUSAN PEJABAT PENGARAH KANAN PENGURUSAN, LEMBAGA LEBUHRAYA MALAYSIA",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "27 tahun",
+    "tempohLantikanSekarang": "4 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2020, 2010 DAN 2002\n2019-KINI : AHLI PERNITA LLM\n2019-KINI : AHLI JAWATANKUASA\nBADAN KEBAJIKAN SUKAN DAN SOSIAL\n(BKSS), LLM\n2014-KINI : AHLI LEMBAGA KOPERASI\nLLM BERHAD\n2012 : ANUGERAH BERPRESTASI BAIK,\nLLM",
+    "halamanSumber": 5,
+    "gambar": "/gambar/9.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 10,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "9",
+    "kod": "829",
+    "nama": "IR. MOHD SHAHRIR AMIN BIN AHMAD",
+    "noKadPengenalan": "730519-08-5595",
+    "noRujukanA": "A2244481",
+    "umur": 52,
+    "jawatan": "PENGARAH BAHAGIAN PEMANTAUAN OPERASI, LEMBAGA LEBUHRAYA MALAYSIA",
+    "gredGaji": "J54",
+    "tempohLantikanPertama": "26 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2014 DAN 2004\n2023 -KINI : AHLI, EMERALD PARK\nASSOCIATION\n2019 -KINI : AHLI, KOPERASI LLM\nBERHAD\n2002- KINI : AHLI, MALAYSIAN\nINSTITUTE OF ENGINEERS\n1998-KINI : AHLI, LEMBAGA JURUTERA\nMALAYSIA (BEM)",
+    "halamanSumber": 6,
+    "gambar": "/gambar/10.jpg",
+    "skim": "Skim J (Kejuruteraan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 11,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "10",
+    "kod": "833",
+    "nama": "PUAN FARAH ZIZA BINTI MOHAMED FAWZI",
+    "noKadPengenalan": "741018-10-5168",
+    "noRujukanA": "A2877863",
+    "umur": 50,
+    "jawatan": "PENGARAH BAHAGIAN PENGAWASAN TOL, LEMBAGA LEBUHRAYA MALAYSIA",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "24 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2019, 2008 DAN 2003\n2000-KINI : AHLI BIASA, PERNITA LLM\n2000-KINI : BADAN KEBAJIKAN, SUKAN\nDAN SOSIAL LLM\n2019-KINI : AHLI, PERSATUAN\nPENDUDUK BANDAR PUTERI\n2023, 2014 & 2018 : ANUGERAH\nBERPRESTASI BAIK, JABATAN",
+    "halamanSumber": 6,
+    "gambar": "/gambar/11.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 12,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "11",
+    "kod": "818",
+    "nama": "TS. NAIDATUL MAZIDAH BINTI LATIF",
+    "noKadPengenalan": "760612-14-5844",
+    "noRujukanA": "A3371143",
+    "umur": 49,
+    "jawatan": "PENGURUS BESAR KANAN SEKTOR DASAR DAN KORPORAT, LEMBAGA PEMBANGUNAN INDUSTRI PEMBINAAN MALAYSIA (CIDB)",
+    "gredGaji": "J54",
+    "tempohLantikanPertama": "25 tahun",
+    "tempohLantikanSekarang": "3 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2022, 2012 DAN 2004\n2021-KINI : PENGERUSI\nJAWATANKUASA KERJA BAGI\nPEMBANGUNAN MANUAL STAF\n(PERINGKAT JABATAN)\n2021-KINI : AHLI PANEL\nPEMBANGUNAN SUMBER MANUSIA\n(PERINGKAT JABATAN)\n2021-KINI : PENGERUSI\nJAWATANKUASA KENAIKAN PANGKAT\n(PERINGKAT JABATAN)\nCALON K.M.N. TAHUN 202",
+    "halamanSumber": 7,
+    "gambar": "/gambar/12.jpg",
+    "skim": "Skim J (Kejuruteraan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 13,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "12",
+    "kod": "831",
+    "nama": "IR.TS. AZLEEN BINTI JALUDIN",
+    "noKadPengenalan": "761119-14-5992",
+    "noRujukanA": "A3444746",
+    "umur": 48,
+    "jawatan": "PENGARAH BAHAGIAN KHIDMAT PAKAR DAN KERJASAMA TEKNIKAL, LEMBAGA LEBUHRAYA MALAYSIA",
+    "gredGaji": "J54",
+    "tempohLantikanPertama": "24 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2018, 2012 DAN 2005\n2001-KINI : AHLI, PERNITA LLM\n2001-KINI : AHLI, BADAN KEBAJIKAN\nSUKAN DAN SOSIAL LLM\n2024 : JURUTERA PROFESIONAL,\nREGISTERED PROFESSIONAL\nENGINEER UNDER BOARD OF\nENGINEER MALAYSIA (BEM)\nCALON K.M.N. TAHUN 2020",
+    "halamanSumber": 7,
+    "gambar": "/gambar/13.jpg",
+    "skim": "Skim J (Kejuruteraan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 14,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "13",
+    "kod": "832",
+    "nama": "IR. KHAIRULANUAR BIN MUHARI",
+    "noKadPengenalan": "770208-01-6927",
+    "noRujukanA": "A3534782",
+    "umur": 48,
+    "jawatan": "PENGARAH BAHAGIAN PENGURUSAN REKABENTUK, LEMBAGA LEBUHRAYA MALAYSIA",
+    "gredGaji": "J54",
+    "tempohLantikanPertama": "24 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2019\n2023 : MANUGERAH BERPRESTASI\nBAIK, JABATAN\n2019 : ANUGERAH PEKERJA CONTOH\n(APCH), JABATAN\n2015- KINI : AHLI BERDAFTAR, ROAD\nENGINEERING ASSOCIATION\nMALAYSIA (REAM)\n2003-KINI : AHLI BERDAFTAR,\nINSTITUTE OF ENGINEER MALAYSIA",
+    "halamanSumber": 8,
+    "gambar": "/gambar/14.jpg",
+    "skim": "Skim J (Kejuruteraan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 15,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PENDIDIKAN MALAYSIA",
+    "bil": "1",
+    "kod": "771",
+    "nama": "YBRS. DR. RUSMADI BIN BAHARUDIN A 0211485",
+    "noKadPengenalan": "650109-05-5369",
+    "noRujukanA": "",
+    "umur": 60,
+    "jawatan": "PENGARAH JABATAN PEMBINAAN BAHASA DAN SASTERA, DEWAN BAHASA DAN PUSTAKA",
+    "gredGaji": "VU7 Gred Utama C",
+    "tempohLantikanPertama": "30 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2019, 2013 DAN 2003\n2023-2025: TIMBALAN PENGERUSI\nJAWATANKUASA PENERBITAN\n2020-2022: TIMBALAN PRESIDEN\nPERSATUAN LINGUISTIK MALAYSIA\n(PLM)\n2015: ANUGERAH PERKHIDMATAN 20\nTAHUN\n2009: ANUGERAH PERKHIDMATAN 15\nTAHUN\n2005: KARYAWAN TERBAIK PEMBINAAN\nDAN PENYELIDIKAN BAHASA, DBP\n1998: PENERIMA ANUGERAH KHAS\nPERKHIDMATAN CEMERLANG DBP\n​BERSARA WAJIB PADA 9.1.2025",
+    "halamanSumber": 9,
+    "gambar": "/gambar/15.jpg",
+    "skim": "Skim VU (Pengurusan Tertinggi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 16,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PENDIDIKAN MALAYSIA",
+    "bil": "2",
+    "kod": "773",
+    "nama": "ENCIK ABANG HALIMAN BIN ABANG JULAI K0126444",
+    "noKadPengenalan": "671004-13-5189",
+    "noRujukanA": "",
+    "umur": 57,
+    "jawatan": "PENGARAH DEWAN BAHASA DAN PUSTAKA CAWANGAN SARAWAK",
+    "gredGaji": "S54",
+    "tempohLantikanPertama": "32 tahun",
+    "tempohLantikanSekarang": "6 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2020, 2007, 1998 DAN 1996\n2023: JAWATANKUASA ANUGERAH SENI\nBUDAYA SARAWAK 2023\n2023: ANUGERAH PERKHIDMATAN 30\nTAHUN\n2020-KINI: SETIAUSAHA\nJAWATANKUASA ANUGERAH SASTERA\nSARAWAK\n2020-KINI: PENASIHAT BADAN\nKELUARGA DBP CAWANGAN SARAWAK",
+    "halamanSumber": 9,
+    "gambar": "/gambar/16.jpg",
+    "skim": "Skim S (Sains Sosial)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 17,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PENDIDIKAN MALAYSIA",
+    "bil": "3",
+    "kod": "774",
+    "nama": "YBRS. TUAN HAJI MOHD SALAHUDDIN BIN MOHAMED",
+    "noKadPengenalan": "740308-03-5765",
+    "noRujukanA": "A2646943",
+    "umur": 51,
+    "jawatan": "PENGARAH JABATAN PENGEMBANGAN BAHASA DAN SASTERA, DEWAN BAHASA DAN PUSTAKA",
+    "gredGaji": "VU7 Gred Utama C",
+    "tempohLantikanPertama": "24 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2020, 2012 DAN 2005\n2023-KINI: AHLI MAJLIS BAHAN\nBRUNEI, INDONESIA, MALAYSIA\n(MABBIM)\n2017-KINI: PANEL DAKWAH PROGRAM\nBANDUAN AKHIR DI PENJARA KAJANG\n2022: PENILAI MANUSKRIP BERTAJUK\nOPS GANYANG\n2017: MENULIS BUKU BERTAJUK IBRAH\nDARI SIRAH NABI SAW\n2001: MEWAKILI DEWAN BAHASA DAN\nPUSTAKA PERSIDANGAN PENERBITAN\nFOKEPS MALAYSIA, INDONESIA DAN\nBRUNEI DI BRUNEI",
+    "halamanSumber": 10,
+    "gambar": "/gambar/17.jpg",
+    "skim": "Skim VU (Pengurusan Tertinggi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 18,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PENDIDIKAN TINGGI",
+    "bil": "1",
+    "kod": "1055",
+    "nama": "TUAN HAJI MOHD NOR SHOKRI BIN HAJI ABD RAHMAN",
+    "noKadPengenalan": "660125-11-5623",
+    "noRujukanA": "A0368789",
+    "umur": 59,
+    "jawatan": "PENGARAH PUSAT PENGURUSAN DAN PENJAMINAN KUALITI, UNIVERSITI MALAYSIA TERENGGANU",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "34 tahun",
+    "tempohLantikanSekarang": "12 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2010, 2003, 1998 DAN 1993\n2023-KINI: AHLI LEMBAGA PENGARAH\nSYARIKAT WAWASAN WIBAWA (KOLEJ\nAL-QURAN TERENGGANU)\n2023-KINI: EXCO JAWATANKUASA\nPENILAIAN OPERASI KOLEJ AL-QURAN\nTERENGGANU\n2023-KINI: PRESIDEN PERSATUAN\nTENIS TERENGGANU (PTT)\n2021-KINI: TIMBALAN KOMANDAN\nPALAPES (DARAT) UMT DENGAN\nJAWATAN LEFT. KOLONEL (KEHORMAT)\n2023: PINGAT GANGSA KEJOHANAN\nSUKAN BADAN-BADAN BERKANUN\nMALAYSIA (SUKANUN)\n2020: ANUGERAH KHAS NAIB\nCANSELOR (AKNC), UMT\n2020: ANUGERAH KHAS\nPERKHIDMATAN CEMERLANG",
+    "halamanSumber": 11,
+    "gambar": "/gambar/18.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 19,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PENDIDIKAN TINGGI",
+    "bil": "2",
+    "kod": "1048",
+    "nama": "YBRS. TS. WAN ABDUL MANAN BIN WAN ABDULLAH",
+    "noKadPengenalan": "671126-11-5039",
+    "noRujukanA": "A0783678",
+    "umur": 57,
+    "jawatan": "PENDAFTAR PEJABAT PENDAFTAR, UNIVERSITI MALAYSIA TERENGGANU",
+    "gredGaji": "VU7 Gred Utama C",
+    "tempohLantikanPertama": "23 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2016, 2008 DAN 2003\n2024: ANUGERAH KEPIMPINAN\nSEJAHTERA, UNIVERSITI AWAM\n2024: SETIAUSAHA LEMBAGA\nPENGARAH UNIVERSITI MALAYSIA\nTERENGGANU\n2024: SETIAUSAHA SENAT UNIVERSITI\nMALAYSIA TERENGGANU\n2024: PEGAWAI PENGELAS DOKUMEN\nSULIT UNIVERSITI\n2023: PENGARAH KARNIVAL JOM\nMASUK U\n2023: JURUAUDIT AUDIT SUSULAN\nAUTONOMI UNIVERSITI AWAM\n(PENGURUSAN AKADEMIK DAN\nKEMASUKAN PELAJAR)\n2019: ANUGERAH KHAS NAIB\nCANSELOR (AKNC), UMT",
+    "halamanSumber": 12,
+    "gambar": "/gambar/19.jpg",
+    "skim": "Skim VU (Pengurusan Tertinggi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 20,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PENDIDIKAN TINGGI",
+    "bil": "3",
+    "kod": "1065",
+    "nama": "DR. ROKIAH BINTI ISMAIL",
+    "noKadPengenalan": "691025-10-6684",
+    "noRujukanA": "A1391346",
+    "umur": 55,
+    "jawatan": "KETUA JABATAN JABATAN DIETETIK, PUSAT PERUBATAN UNIVERSITI MALAYA",
+    "gredGaji": "U52",
+    "tempohLantikanPertama": "30 tahun",
+    "tempohLantikanSekarang": "8 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2010 DAN 2006\n2024: ANUGERAH KECEMERLANGAN\nKHAS UNTUK PROJEK KETETAPAN\nPENYEDIAAN DAN PENYAJIAN DIET\nDSYPHAGIA KEPADA PESAKIT PPUM\n2023: ANUGERAH KHAS PENGARAH,\nPPUM\n2023: ANUGERAH CEMERLANG\nBERKUMPULAN TABUNG KHAS COVID,\nPPUM\n2023: ANUGERAH CEMERLANG\nBERKUMPULAN PROJEK DIABETES\nCAMP UNTUK KANAK-KANAK DIABETES\nJENIS 1, PPUM\n2023: MDA (MALAYSIAN DIETITIAN’S\nASSOCIATION) FELLOWSHIP AWARD\n2020: ANUGERAH KHAS\nBERKUMPULAN PROJEK PENGINAPAN\nDAN MAKANAN UNTUK STAF PPUM\nYANG MENDAPAT JANGKITAN COVID\n19, PPUM\nCALON K.M.N. TAHUN 2023",
+    "halamanSumber": 13,
+    "gambar": "/gambar/20.jpg",
+    "skim": "Skim U (Pendidikan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 21,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PENDIDIKAN TINGGI",
+    "bil": "4",
+    "kod": "1057",
+    "nama": "TUAN HAJI ZUKIFEREE BIN IBRAHIM",
+    "noKadPengenalan": "740729-11-5413",
+    "noRujukanA": "A2809598",
+    "umur": 50,
+    "jawatan": "PENGARAH PEJABAT KOMUNIKASI KORPORAT, UNIVERSITI MALAYSIA TERENGGANU",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "23 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2004\n2019-KINI: PEGAWAI PENGKELAS\nDOKUMEN RASMI\n2018-KINI: NAIB PENGERUSI KELAB\nCAKNA TERENGGANU\n2018-KINI: SETIAUSAHA WADAH\nPENCERDASAN UMMAT\n2023: TIMBALAN PENGERUSI\nJAWATANKUASA PINDAAN AUKU\nJAWATANKUASA PENDAFTAR\nUNIVERSITI AWAM\n2021: ANUGERAH KHAS\nPERKHIDMATAN CEMERLANG, UMT\n2020: ANUGERAH SAFETY FIRST, UMT\n2020: ANUGERAH KHAS NAIB\nCANSELOR,UMT",
+    "halamanSumber": 14,
+    "gambar": "/gambar/21.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 22,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PENDIDIKAN TINGGI",
+    "bil": "5",
+    "kod": "1061",
+    "nama": "PUAN HALINORDINA BINTI MAT SAAT",
+    "noKadPengenalan": "750204-08-6460",
+    "noRujukanA": "A2975249",
+    "umur": 50,
+    "jawatan": "TIMBALAN KETUA PEGAWAI EKSEKUTIF (PENGURUSAN) AGENSI KELAYAKAN MALAYSIA (MQA)",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "23 tahun",
+    "tempohLantikanSekarang": "12 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2002 DAN 2008\n2015-KINI: AHLI KELAB KEBAJIKAN\nMQA\n2015-KINI: AHLI PUSPANITA MQA\n2015-KINI: AHLI KELAB SUKAN MQA\n2023: TERLIBAT DENGAN PROGRAM\nUNDANG-UNDANG PENTADBIRAN\nDALAM TADBIR URUS INSTITUSI\nPENDIDIKAN TINGGI\n2023: TERLIBAT DENGAN PROGRAMME\nSTANDARDS : COMPUTING 3RD\nEDITION\n2019: HADIAH JASA BAKTI\nCALON K.M.N. TAHUN 2024, 2023 DAN\n2022",
+    "halamanSumber": 15,
+    "gambar": "/gambar/22.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 23,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PENDIDIKAN TINGGI",
+    "bil": "6",
+    "kod": "1062",
+    "nama": "PUAN MAZLINAWATI BINTI MOHAMED",
+    "noKadPengenalan": "750823-02-5624",
+    "noRujukanA": "A3135496",
+    "umur": 49,
+    "jawatan": "PENGARAH BAHAGIAN AUDIT INSTITUSI, AGENSI KELAYAKAN MALAYSIA (MQA)",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "23 tahun",
+    "tempohLantikanSekarang": "8 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2010 DAN 2004\n2015-KINI: AHLI KELAB KEBAJIKAN DAN\nSUKAN MQA\n2015-KINI: AHLI PUSPANITA MQA\n2020: AHLI MAJLIS TAHFIZ NEGARA\n2019-2020: AHLI PENYELIDIKRECOTVET\nREGIONAL CONSULTATION ON\nQUALITY ASSURANCE IN TVET IN\nASEAN\n2019-2020: PENYELIDIK PROJEK\nPENYELIDIKAN IIEP UNESCO\nBERTAJUK 'SDG4-FLEXIBLE LEARNING\nPATHWAYS IN HIGHER EDUCATION-\nMALAY\n2019: WAKIL MALAYSIA DALAM\nJAWATANKUASA AQAN TVET\nSERANTAU\n2019: HADIAH JASA BAKTI\nCALON K.M.N. TAHUN 2024, 2023 DAN\n2022",
+    "halamanSumber": 16,
+    "gambar": "/gambar/23.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 24,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERTANIAN DAN KETERJAMINAN MAKANAN",
+    "bil": "1",
+    "kod": "1311",
+    "nama": "YBRS. DR. SIAH WATT MOEY",
+    "noKadPengenalan": "681114-04-5108",
+    "noRujukanA": "A1127675",
+    "umur": 56,
+    "jawatan": "PENGARAH PUSAT PENYELIDIKAN SAINS DAN TEKNOLOGI MAKANAN, MARDI",
+    "gredGaji": "VU7 Gred Utama C",
+    "tempohLantikanPertama": "27 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2022 DAN 2005\n2022: SIJIL PENGHARGAAN KHIDMAT\nSETIA MARDI (25 TAHUN)\n2019: PATENT (MY-173083-A)\nBIODEGRADABLE FOOD FILM FROM\nSEAWEED AND PROCESS FOR\nPRODUCING THE SAME\n2016: ANUGERAH HADIAH BUKU\nINOVASI MTDC MAJLIS KONVOKESYEN\nUNIVERSITI KEBANGSAAN MALAYSIA\nKE 44, BANGI\nCALON K.M.N. TAHUN 2020",
+    "halamanSumber": 17,
+    "gambar": "/gambar/24.jpg",
+    "skim": "Skim VU (Pengurusan Tertinggi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 25,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERTANIAN DAN KETERJAMINAN MAKANAN",
+    "bil": "2",
+    "kod": "1312",
+    "nama": "YBRS. DR. MADZLAN BIN KASRAN",
+    "noKadPengenalan": "690221-10-6505",
+    "noRujukanA": "A1309333",
+    "umur": 56,
+    "jawatan": "PEGAWAI PENYELIDIK PRINSIPAL PUSAT PENYELIDIKAN SAINS & TEKNOLOGI MAKANAN (FT),MARDI",
+    "gredGaji": "Q54",
+    "tempohLantikanPertama": "29 tahun",
+    "tempohLantikanSekarang": "10 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2022 DAN 2005\n2024: PINGAT GANGSA (KATEGORI\nPENGETAHUAN) MARDI SCIENCE AND\nTECHNOLOGY EXHIBITION (MSTE)\n2021: PINGAT EMAS, INTERNATIONAL\nINVENTION, INNOVATION AND\nTECHNOLOGY EXHIBITION (ITEX)\n2021: ANUGERAH KHIDMAT SETIA\nMARDI",
+    "halamanSumber": 17,
+    "gambar": "/gambar/25.jpg",
+    "skim": "Skim Q (Penyelidikan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 26,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERTANIAN DAN KETERJAMINAN MAKANAN",
+    "bil": "3",
+    "kod": "1313",
+    "nama": "TS. DR. AIDA HAMIMI BINTI IBRAHIM",
+    "noKadPengenalan": "700410-03-5386",
+    "noRujukanA": "A1534134",
+    "umur": 55,
+    "jawatan": "TIMBALAN PENGARAH PEJABAT TEKNOLOGI ENZIM DAN FERMENTASI, PUSAT PENYELIDIKAN SAINS & TEKNOLOGI MAKANAN (FT), MARDI",
+    "gredGaji": "Q54",
+    "tempohLantikanPertama": "27 tahun",
+    "tempohLantikanSekarang": "4 tahun",
+    "anugerahDiterima": "Tiada\nNota:\n2021: PINGAT EMAS INTERNATIONAL\nINVENTION & INNOVATION\nEXHIBITION (ITEX) (PERINGKAT\nANTARABANGSA)\n2020: PINGAT PERAK MARDI SCIENCE\n& TECHNOLOGY EXHIBITON (MSTE)\n(PERINGKAT JABATAN)\n2018: ANUGERAH KHIDMAT\nCEMERLANG (PERINGKAT\nKEMENTERIAN)\n2018: PINGAT PERAK INTERNATIONAL\nINVENTION & INNOVATION\nEXHIBITION (ITEX) (PERINGKAT\nANTARABANGSA)",
+    "halamanSumber": 18,
+    "gambar": "/gambar/26.jpg",
+    "skim": "Skim Q (Penyelidikan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 27,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERTANIAN DAN KETERJAMINAN MAKANAN",
+    "bil": "4",
+    "kod": "1314",
+    "nama": "YBRS. DR. MUSAALBAKRI BIN ABDUL MANAN",
+    "noKadPengenalan": "721027-02-5823",
+    "noRujukanA": "A2278968",
+    "umur": 52,
+    "jawatan": "PEGAWAI PENYELIDIK PRINSIPAL PUSAT PENYELIDIKAN SAINS & TEKNOLOGI MAKANAN (FT), MARDI",
+    "gredGaji": "Q54",
+    "tempohLantikanPertama": "27 tahun",
+    "tempohLantikanSekarang": "3 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2024, 2021\n2023: KHIDMAT SETIA 25 TAHUN\n(MARDI) (PERINGKAT JABATAN)\n2020: ANUGERAH SAINTIS CEMERLANG\nMARDI SCIENCE & TECHNOLOGY\nEXHIBITION (MSTE) (PERINGKAT\nJABATAN)\n2018: ANUGERAH PENULIS PROLIFIK\nMARDI SCIENCE & TECHNOLOGY\nEXHIBITION (MSTE) (PERINGKAT\nJABATAN)\n2008: ANUGERAH PENULIS MUDA\nSAINS TERBAIK MARDI SCIENCE &\nTECHNOLOGY EXHIBITION (MSTE)\n(PERINGKAT JABATAN)\n2005: ANUGERAH KHAS KETUA\nPENGARAH – ANUGERAH KUALITI\nPERDANA MENTERI SEKTOR AWAM\n2005 (PERINGKAT KEMENTERIAN)\n2024: SILVER MEDAL: CULTURED\nVITATO BEVERAGE: INNOVATING\nFUNCTIONAL WELLNESS. INNOVATION\nCATEGORY. MARDI SCIENCE &\nTECHNOLOGY EXHIBITION (MSTE)\nMARDI SCIENCE & TECHNOLOGY\nEXHIBITION (MSTE) (PERINGKAT\nJABATAN)",
+    "halamanSumber": 19,
+    "gambar": "/gambar/27.jpg",
+    "skim": "Skim Q (Penyelidikan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 28,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KEMAJUAN DESA DAN WILAYAH",
+    "bil": "1",
+    "kod": "1234",
+    "nama": "PUAN HAJAH AFIFAH BINTI OMAR",
+    "noKadPengenalan": "760526-02-6064",
+    "noRujukanA": "A3363333",
+    "umur": 49,
+    "jawatan": "TIMBALAN PENGURUS BESAR (OPERASI) BAHAGIAN PENGURUSAN, LEMBAGA KEMAJUAN WILAYAH KEDAH (KEDA)",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "18 tahun",
+    "tempohLantikanSekarang": "3 tahun",
+    "anugerahDiterima": "B.C.K(Kedah) - 2022\nNota:\nAPC TAHUN 2010\n2021-KINI: PENASIHAT JAWATANKUASA\nAKRAB KEDA\n2020-KINI: PENASIHAT JAWATANKUASA\nSURAU AN NUR KEDA\n2023-KINI: PENGERUSI PUSPANITA\nKEDA\n2023: AHLI KOPERASI MASJID RAFEAH\nTAMAN UDA\n2023: KETUA SEKRETARIAT KEDA -\nMAKSPEN KKDW\n2023: PENASIHAT KUMPULAN\nPERSEMBAHAN TEATER KEDA\nCALON K.M.N. TAHUN 2024",
+    "halamanSumber": 20,
+    "gambar": "/gambar/28.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 29,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KEMAJUAN DESA DAN WILAYAH",
+    "bil": "2",
+    "kod": "1230",
+    "nama": "ENCIK MD NAJIP BIN ISHAK",
+    "noKadPengenalan": "771019-01-5903",
+    "noRujukanA": "A3838600",
+    "umur": 47,
+    "jawatan": "TIMBALAN KETUA PENGARAH (PEMBANGUNAN) PIHAK BERKUASA KEMAJUAN PEKEBUN KECIL PERUSAHAAN GETAH (RISDA)",
+    "gredGaji": "G54",
+    "tempohLantikanPertama": "21 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2016 DAN 2006\n2024-KINI: AHLI JAWATANKUASA BENIH\nRISDA\n2023-2024: PENGERUSI PROGRAM\nJELAJAH JELITA @ RISDA TERENGGANU\n2023-2024: PENGERUSI PROGRAM\nRISDA GROOM BIG CHALLENGE",
+    "halamanSumber": 20,
+    "gambar": "/gambar/29.jpg",
+    "skim": "Skim G (Sains)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 30,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN KEMAJUAN DESA DAN WILAYAH",
+    "bil": "3",
+    "kod": "1232",
+    "nama": "ENCIK MOHAMAD HILMI BIN ABDUL HAMID",
+    "noKadPengenalan": "790409-13-5947",
+    "noRujukanA": "",
+    "umur": 46,
+    "jawatan": "PENGARAH BAHAGIAN KEWANGAN DAN BELANJAWAN, PIHAK BERKUASA KEMAJUAN PEKEBUN KECIL PERUSAHAAN GETAH (RISDA)",
+    "gredGaji": "W54",
+    "tempohLantikanPertama": "17 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2021 DAN 2010\n2007-KINI: AHLI BADAN AGAMA ISLAM\nRISDA (BARIS)\n2012-KINI: BENDAHARI MAJLIS SUKAN\nDAN KEBUDAYAAN RISDA MALAYSIA\n(MSKRM)\n2008-KINI: AHLI KELAB SUKAN RISDA\nWILAYAH PERSEKUTUAN (KSRWP)\n2008-KINI: ANGGOTA KOPERASI\nKAKITANGAN RISDA MALAYSIA\n(KARISMA)\n2021-KINI: PENAUNG KELAB TABUNG\nKEBAJIKAN SOSIAL BAHAGIAN\nKEWANGAN DAN BELANJAWAN",
+    "halamanSumber": 21,
+    "gambar": "/gambar/30.jpg",
+    "skim": "Skim W (Kewangan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 31,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PELABURAN, PERDAGANGAN DAN INDUSTRI",
+    "bil": "1",
+    "kod": "203",
+    "nama": "ENCIK ZAFFRULLA BIN HUSSEIN",
+    "noKadPengenalan": "691003-03-5395",
+    "noRujukanA": "A1493795",
+    "umur": 55,
+    "jawatan": "PENGARAH BAHAGIAN PRESTASI PRODUKTIVITI DAN EKONOMI, PERBADANAN PRODUKTIVITI MALAYSIA (MPC)",
+    "gredGaji": "E54",
+    "tempohLantikanPertama": "28 tahun",
+    "tempohLantikanSekarang": "3 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2021, 2015 DAN 2004\n2019-2021: KETUA PASUKAN,\nPENERBITAN LAPORAN PRODUKTIVITI\nNEGARA\n2019-2020: KETUA PASUKAN\n(KERJASAMA JPA & MPC), KAJIAN\nPENGUKURAN PRESTASI PRODUKTIVITI\nPERKHIDMATAN AWAM\n2019: AHLI PASUKAN,\nPEMBENTANGAN KERTAS KERJA-THE\nFIFTH ASIAN KLEMS CONFERENCE\n2018-2021: JURUAUDIT AKAUN\nPERSATUAN WARGA MPC\n2015-2019: KHIDMAT PAKAR DALAM\nMEMBANTU NEGARA-NEGARA\nANGGOTA ASEAN PRODUKTIVITI\nORGANISATION (APO) DALAM\nMEMBANGUNKAN PENGUKURAN\nPRODUKTIVITI PERKHIDMATAN AWAM\nCALON K.M.N. TAHUN 2024 DAN 2023",
+    "halamanSumber": 22,
+    "gambar": "/gambar/31.jpg",
+    "skim": "Skim E (Ekonomi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 32,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PELABURAN, PERDAGANGAN DAN INDUSTRI",
+    "bil": "2",
+    "kod": "214",
+    "nama": "TS. NORHIZAM BIN IBRAHIM",
+    "noKadPengenalan": "740917-14-5185",
+    "noRujukanA": "A2858426",
+    "umur": 50,
+    "jawatan": "PENGARAH BAHAGIAN PEMBANGUNAN SISTEM TEKNOLOGI MAKLUMAT, LEMBAGA PEMBANGUNAN PELABURAN MALAYSIA (MIDA)",
+    "gredGaji": "E54",
+    "tempohLantikanPertama": "21 tahun",
+    "tempohLantikanSekarang": "5 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2012 DAN 2007\n2024: MENGETUAI PELAKSANAAN\nPROJEK STRATEGIK MIDA INVESTMENT\nLEADS PORTAL\n2024: TERLIBAT SECARA LANGSUNG\nDALAM PENAIKTARAFAN DAN\nPELUASAN SISTEM DIGITAL MIDA\n2024: ARKITEK PLATFORM UNTUK\nPROJEK ONE STOP PORTAL\n2024: MEMBANGUNANKAN SISTEM\nMIDA-XPAT DIBAWAH PLATFORM\nSEHENTI SISTEM INVEST MALAYSIA\nMIDA\n2023: MENGETUAI KEJAYAAN\nPELAKSANAAN PROJEK\nPEMBANGUNAN SISTEM\nTANDATANGAN DIGITAL ORGANISASI\nCALON J.S.M. TAHUN 2024",
+    "halamanSumber": 23,
+    "gambar": "/gambar/32.jpg",
+    "skim": "Skim E (Ekonomi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 33,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PELABURAN, PERDAGANGAN DAN INDUSTRI",
+    "bil": "3",
+    "kod": "212",
+    "nama": "PUAN SURAYU BINTI SUSAH",
+    "noKadPengenalan": "750221-01-5074",
+    "noRujukanA": "A3026283",
+    "umur": 50,
+    "jawatan": "PENGARAH BAHAGIAN PERANCANGAN STRATEGIK & POLISI ADVOKASI PERKILANGAN, LEMBAGA PEMBANGUNAN PELABURAN MALAYSIA (MIDA)",
+    "gredGaji": "E54",
+    "tempohLantikanPertama": "25 tahun",
+    "tempohLantikanSekarang": "6 tahun",
+    "anugerahDiterima": "Tiada\nNota:\n2024: AHLI KAJIAN SEPARUH PENGGAL\nRMK KE 12 OLEH KEMENTERIAN\nEKONOMI\n2024: AHLI KAJIAN STRATEGI\nPELABURAN HIJAU OLEH MITI\n2024: AHLI KAJIAN CADANGAN\nINSENTIF KEPADA PREMIS INDUSTRI\nSEBAGAI GALAKAN DALAM\nMENGAPLIKASIKAN AMALAN INDUSTRI\nHIJAU MELALUI KONSEP\nPENGELUARAN BERSIH DI MALAYSIA\nOLEH JAS\n2024: AHLI KAJIAN MENINGKATKAN\nDAYA SAING INDUSTRI PERKILANGAN\nDI MALAYSIA MELALUI PELABURAN\nLANGSUNG LUAR NEGARA OLEH MIDA\n2023: MEWAKILI MALAYSIA SEBAGAI\nPEMBENTANG DI APEC WORKSHOP ON\nCAPACITY BUILDING ON HOW\nINVESTMENT FACILITATION POLICIES\nCAN ENHANCE SUSTAINABLE\nINVESTMENT YANG DIADAKAN DI\nTAIPEI, TAIWAN",
+    "halamanSumber": 24,
+    "gambar": "/gambar/33.jpg",
+    "skim": "Skim E (Ekonomi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 34,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PELABURAN, PERDAGANGAN DAN INDUSTRI",
+    "bil": "4",
+    "kod": "206",
+    "nama": "PUAN NOOR HAYATI BINTI ABU NOH",
+    "noKadPengenalan": "751214-04-5480",
+    "noRujukanA": "A3273608",
+    "umur": 49,
+    "jawatan": "PENGARAH SEKSYEN KOORDINASI DAN PEMANTAUAN, BAHAGIAN PERANCANGAN STRATEGIK, PERBADANAN PEMBANGUNAN PERDAGANGAN LUAR MALAYSIA (MATRADE)",
+    "gredGaji": "E54",
+    "tempohLantikanPertama": "21 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2019 DAN 2007\n2022-2024: KETUA BIRO KEMBARA\n2021-KINI: AHLI PUSPANITA\n2020-KINI: KOPERASI MATRADE\n2019: ANUGERAH PEKERJA MATRADE",
+    "halamanSumber": 24,
+    "gambar": "/gambar/34.jpg",
+    "skim": "Skim E (Ekonomi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 35,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PELABURAN, PERDAGANGAN DAN INDUSTRI",
+    "bil": "5",
+    "kod": "205",
+    "nama": "PUAN ASNOR VIDYA BINTI NOR AZMI",
+    "noKadPengenalan": "791026-01-5002",
+    "noRujukanA": "",
+    "umur": 45,
+    "jawatan": "PENGARAH SEKSYEN PROGRAM KHAS & PERDAGANGAN DIGITAL, BAHAGIAN TRANSFORMASI & PERDAGANGAN DIGITAL, PERBADANAN PEMBANGUNAN PERDAGANGAN LUAR MALAYSIA (MATRADE)",
+    "gredGaji": "E54",
+    "tempohLantikanPertama": "20 tahun",
+    "tempohLantikanSekarang": "2 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2017 DAN 2006\n2023-KINI: AHLI AWATANKUASA\nPEMANDU PROGRAM SME BANK BEP\n2.0\n2023-KINI: AHLI JAWATANKUASA\nNATIONAL TRADE BLUEPRINT (NTBP)\nWORKING GROUP 5 (WG5):\nDIGITALISATION & TECHNOLOGY\n2023-KINI: KETUA SEKRETARIAT\nNATIONAL TRADE BLUEPRINT (NTBP)\nWORKING GROUP 7: BRANDING\n2023-KINI: KETUA PASUKAN PETUGAS\nSECTORAL TASKFORCE 10: CROSS\nBORDER ECOMMERCE, NATIONAL\nTRADE BLUEPRINT\n2023-KINI: AHLI JAWATANKUASA\nWAKALAH MATRADE\n2023-KINI: AHLI GANTIAN\nJAWATANKUASA PELAN HALA TUJU\nSTRATEGIK EDAGANG KEBANGSAAN\n2019: ANUGERAH PEKERJA MATRADE",
+    "halamanSumber": 25,
+    "gambar": "/gambar/35.jpg",
+    "skim": "Skim E (Ekonomi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 36,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PELABURAN, PERDAGANGAN DAN INDUSTRI",
+    "bil": "6",
+    "kod": "209",
+    "nama": "ENCIK MAZLAN BIN HARUN",
+    "noKadPengenalan": "791103-10-5483",
+    "noRujukanA": "",
+    "umur": 45,
+    "jawatan": "PENGARAH SEKSYEN CHINA & ASIA TIMUR DAN ASEAN & OCEANIA, BAHAGIAN PROMOSI EKSPORT & AKSES PASARAN, PERBADANAN PEMBANGUNAN PERDAGANGAN LUAR MALAYSIA (MATRADE)",
+    "gredGaji": "E54",
+    "tempohLantikanPertama": "21 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2018 DAN 2007\n2024: PENYERTAAN ASEAN-AUSTRALIA\nSPECIAL SUMMIT\n2024: PENCERAMAH ASEAN BUSINESS\nFORUM\n2024: REP FROM HQ, ONE-TO-ONE\nMEETING DI TRADE AND INVESTMENT\nMISSION TO VIETNAM\n2024: REP FROM HQ ROUNDTABLE\nMEETING WITH CAPTAINS OF\nINDUSTRY DI TRADE AND INVESTMENT\nMISSION TO HO CHI MINH CITY,\nVIETNAM\n2024:MAIN SECRETARIAT 21ST\nCHINA-ASEAN EXPO PROMOTIONAL\nCONFERENCE@ KUALA LUMPUR",
+    "halamanSumber": 26,
+    "gambar": "/gambar/36.jpg",
+    "skim": "Skim E (Ekonomi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 37,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PEMBANGUNAN USAHAWAN DAN KOPERASI",
+    "bil": "1",
+    "kod": "1071",
+    "nama": "PUAN HAMIDAH BINTI MOHD JOS",
+    "noKadPengenalan": "741212-01-5326",
+    "noRujukanA": "A2891676",
+    "umur": 50,
+    "jawatan": "TIMBALAN KETUA PENGARAH (PENGURUSAN) INSTITUT KOPERASI MALAYSIA",
+    "gredGaji": "N52",
+    "tempohLantikanPertama": "20 tahun",
+    "tempohLantikanSekarang": "4 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2017 DAN 2007\n2021-KINI: PENGERUSI PUSPANITA\n2022: CERTIFICATE IN LEADERSHIP\nAND PEOPLE MANAGEMENT AND\nCERTIFICATE IN STRATEGY\nEXECUTION FOR BUSINESS LEADERS\n(ILD UITM)\n2020: ANUGERAH KHIDMAT SETIA DAN\nBERJASA 15 TAHUN\n2019-2020: AHLI LEMBAGA PENGARAH\nKOPERASI KAKITANGAN INSTITUT\nKOPERASI MALAYSIA BERHAD\n2019-2020: PENGERUSI\nJAWATANKUASA PENDIDIKAN DAN\nKEBAJIKAN, KOPERASI KAKITANGAN\nINSTITUT KOPERASI MALAYSIA\nBERHAD\n2016 DAN 2019: ANUGERAH KETUA\nPENGARAH\nCALON K.M.N. TAHUN 2024 DAN 2023\nCALON A.M.N. TAHUN 2021 DAN 2019",
+    "halamanSumber": 27,
+    "gambar": "/gambar/37.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 38,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PEMBANGUNAN USAHAWAN DAN KOPERASI",
+    "bil": "2",
+    "kod": "1072",
+    "nama": "ENCIK MOHD ZAIB BIN MAT YUNUS",
+    "noKadPengenalan": "750717-03-5191",
+    "noRujukanA": "A3078467",
+    "umur": 49,
+    "jawatan": "TIMBALAN KETUA PENGARAH (PEMBANGUNAN MODAL INSAN) INSTITUT KOPERASI MALAYSIA",
+    "gredGaji": "E54",
+    "tempohLantikanPertama": "23 tahun",
+    "tempohLantikanSekarang": "4 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2014 DAN 2004\n2024-KINI: PENGERUSI KOPERASI\nKAKITANGAN INSTITUT KOPERASI\nMALAYSIA BERHAD\n2024-KINI: AHLI BADAN KEBAJIKAN\nKAKITANGAN ISLAM INSTITUT\nKOPERASI MALAYSIA\n2024-KINI: KINI: AHLI KELAB SUKAN\nDAN SOSIAL INSTITUT KOPERASI\nMALAYSIA\n2024-KINI: AHLI KOPERASI\nPEMBANGUNAN DAERAH PETALING\nBERHAD\n2024-KINI: PENASIHAT\nBERSAMA-PROGRAM KERJASAMA\nSYARIKAT KORPORAT DAN CSR\nCALON K.M.N. TAHUN 2024 DAN 2023\nCALON A.M.N. TAHUN 2021 DAN 2019",
+    "halamanSumber": 28,
+    "gambar": "/gambar/38.jpg",
+    "skim": "Skim E (Ekonomi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 39,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PELANCONGAN, SENI DAN BUDAYA",
+    "bil": "1",
+    "kod": "422",
+    "nama": "YM RAJA NOR SHEELA BINTI RAJA AZIDDIN 7430547",
+    "noKadPengenalan": "650101-08-5686",
+    "noRujukanA": "",
+    "umur": 60,
+    "jawatan": "TIMBALAN REKTOR HAL EHWAL PELAJAR DAN ALUMNI AKADEMI SENI BUDAYA DAN WARISAN KEBANGSAAN (ASWARA)",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "31 tahun",
+    "tempohLantikanSekarang": "9 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2009 DAN 2001\n2020-KINI: SETIAUSAHA\nJAWATANKUASA PERWAKILAN PELAJAR\nASWARA\n2019-KINI: AHLI MAJLIS\nANTARABANGSA FESTIVAL DAN\nPERTUBUHAN KESENIAN RAKYAT\n2019-KINI: AHLI PANEL LEMBAGA\nPEPERIKSAAN PERKHIDMATAN AWAM\nASWARA\n2019-KINI: AHLI JAWATANKUASA\nPEMILIHAN PELANTIKAN DEKAN &\nTIMBALAN DEKAN ASWARA\n2019-KINI: PENGERUSI JAWATANKUASA\nPERIHATIN ASWARA\n2019-KINI: AHLI PANEL\nPEMBANGUNAN SUMBER MANUSIA\nASWARA\n2017: SIJIL PRESTASI CEMERLANG\nMOTAC\nBERSARA WAJIB PADA 01.01.2025\nCALON K.M.N. TAHUN 2024",
+    "halamanSumber": 29,
+    "gambar": "/gambar/39.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 40,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PELANCONGAN, SENI DAN BUDAYA",
+    "bil": "2",
+    "kod": "425",
+    "nama": "YBRS. PROF. MADYA TS. DR. ZULKIFLI BIN AB RASHID",
+    "noKadPengenalan": "680327-11-5005",
+    "noRujukanA": "A0866798",
+    "umur": 56,
+    "jawatan": "PENSYARAH AKADEMI SENI BUDAYA DAN WARISAN KEBANGSAAN (ASWARA), KEMENTERIAN PELANCONGAN, SENI DAN BUDAYA",
+    "gredGaji": "B54",
+    "tempohLantikanPertama": "31 tahun",
+    "tempohLantikanSekarang": "2 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2017, 2011, 2008 DAN 1999\n2023-KINI: PEGAWAI PENILAI\nPENGIKTIRAFAN PENCAPAIAN\nTERDAHULU, JABATAN PEMBANGUNAN\nKEMAHIRAN MALAYSIA (JPK)\n2023-KINI: TENAGA PENGAJAR\nBERTAULIAH, HUMAN RESOURCE\nDEVELOPMENT (HRD CORP)\n2023-KINI: PAKAR RUJUK\nPEMBANGUNAN MODUL KURSUS\nJANGKA PENDEK PENGURUSAN SENI,\nNUSANTARA PERFORMING ARTS\nRESEARCH CENTRE (NUSPARC)\n2022-KINI: AHLI JAWATANKUASA\nTEKNIKAL STANDARD (JPK) MALAYSIA\n2022-KINI: AHLI PANEL BENGKEL DANA\nKANDUNGAN DIGITAL FINAS\n2021-KINI: PENASIHAT KEHORMAT,\nCHOLAN BOOK WORLD OF RECORDS\n2024: INDUSTRY SPECIALIST - MAJLIS\nPEMERKASAAN PERNIAGAAN\nMALAYSIA\n2015: ANUGERAH KANGJENG RADEN\nTUMENGGUNG (KRT) NOTONAGORO,\nYOGYAKARTA, INDONESIA\nCALON K.M.N. TAHUN 2023",
+    "halamanSumber": 30,
+    "gambar": "/gambar/40.jpg",
+    "skim": "Skim B (Am Rendah)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 41,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PELANCONGAN, SENI DAN BUDAYA",
+    "bil": "3",
+    "kod": "416",
+    "nama": "ENCIK MOHD KAMARULZAMAN BIN TAIB",
+    "noKadPengenalan": "710615-03-5231",
+    "noRujukanA": "A2136027",
+    "umur": 54,
+    "jawatan": "TIMBALAN DEKAN PUSAT PENGAJIAN PASCASISWAZAH AKADEMI SENI BUDAYA DAN WARISAN KEBANGSAAN (ASWARA)",
+    "gredGaji": "B54",
+    "tempohLantikanPertama": "28 tahun",
+    "tempohLantikanSekarang": "2 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2022, 2010, 2009 DAN 2003\n2021-KINI: AHLI JAWATANKUASA\nPENGAJIAN PASCA ASWARA\n2019-KINI: AHLI MALAYSIA AUTHORS\nCOMPOSERS PRODUCERS\n2019-KINI: PANEL PENILAI LUAR,\nPROJEK AKHIR IJAZAH SARJANA SENI\nPERSEMBAHAN DRAMA, UNIVERSITI\nMALAYA\n2023-2024: PENGARAH PERSIDANGAN\nKEILMUAN BUDAYA ASWARA & MOTAC\n2022: PANEL JURI, ANUGERAH TEATER\nMALAYSIA ANJURAN JABATAN\nKEBUDAYAAN KESENIAN NEGARA\n2019-2022: PENGERUSI KELAB SUKAN\nDAN KEBAJIKAN ASWARA\n2017: PELAKON LELAKI TERBAIK,\nANUGERAH KASEH TRIBUTE P.\nRAMLEE RTM\n2008: PELAKON LELAKI HARAPAN\nTERBAIK, FESTIVAL FILEM MALAYSIA\nKE 22, PELAKON LELAKI PILIHAN\n(FILEM) ANUGERAH OSKAR MALAYSIA",
+    "halamanSumber": 31,
+    "gambar": "/gambar/41.jpg",
+    "skim": "Skim B (Am Rendah)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 42,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PELANCONGAN, SENI DAN BUDAYA",
+    "bil": "4",
+    "kod": "413",
+    "nama": "ENCIK MOHD AMIRUL RIZAL BIN ABDUL RAHIM",
+    "noKadPengenalan": "750915-14-5957",
+    "noRujukanA": "A3204771",
+    "umur": 49,
+    "jawatan": "PENGARAH BAHAGIAN PENGIKLANAN DAN DIGITAL, LEMBAGA PENGGALAKAN PELANCONGAN MALAYSIA, KEMENTERIAN PELANCONGAN, SENI DAN BUDAYA",
+    "gredGaji": "E54",
+    "tempohLantikanPertama": "22 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2023, 2015, 2011 DAN 2004\n2023-2024: AHLI KUALA LUMPUR\nTOURISM ASSOCIATION\n2022-2026: PRESIDEN KELAB REKREASI\nLEMBAGA PENGGALAKAN\nPELANCONGAN MALAYSIA\n2014-2022: NAIB PRESIDEN KELAB\nREKREASI LEMBAGA PENGGALAKAN\nPELANCONGAN MALAYSIA\n2017, 2010, 2007 DAN 2005: ANUGERAH\nKHIDMAT PENGURUSAN\nCALON A.M.N. TAHUN 2024",
+    "halamanSumber": 32,
+    "gambar": "/gambar/42.jpg",
+    "skim": "Skim E (Ekonomi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 43,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERLADANGAN DAN KOMODITI",
+    "bil": "1",
+    "kod": "1099",
+    "nama": "PUAN MAZNAH BINTI ABDUL @ MAZNAH BT ABDUL EMAK H0659764",
+    "noKadPengenalan": "651208-12-5558",
+    "noRujukanA": "",
+    "umur": 59,
+    "jawatan": "TIMBALAN KETUA PENGARAH (OPERASI) LEMBAGA KOKO MALAYSIA",
+    "gredGaji": "E54",
+    "tempohLantikanPertama": "33 tahun",
+    "tempohLantikanSekarang": "2 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2020, 2007, 2006 DAN 2000\n2020-KINI: AHLI PERSATUAN\nKAKITANGAN AWAM PERSEKUTUAN\nSABAH (PERKAPS)\n2017-KINI: AHLI PERSATUAN PEGAWAI\nKANAN LKM\n2016-KINI: PEMEGANG AMANAH DAN\nAHLI KELAB KEBAJIKAN SUKAN DAN\nREKREASI, LKM\n2015-KINI: PENYELARAS HARI SUKAN\nNEGARA PERINGKAT KEMENTERIAN\nDAN AGENSI LKM\n2012: ANUGERAH KHIDMAT BAKTI\nCALON K.M.N. TAHUN 2024 DAN 2022\nCALON A.M.N. TAHUN 2009\nBERSARA WAJIB PADA 08.12.2025",
+    "halamanSumber": 33,
+    "gambar": "/gambar/43.jpg",
+    "skim": "Skim E (Ekonomi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 44,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERLADANGAN DAN KOMODITI",
+    "bil": "2",
+    "kod": "1100",
+    "nama": "PUAN SUZANNAH BINTI SHARIF",
+    "noKadPengenalan": "660430-71-5094",
+    "noRujukanA": "A3923278",
+    "umur": 59,
+    "jawatan": "PENGARAH BAHAGIAN TEKNOLOGI HILIRAN KOKO, PUSAT INOVASI DAN TEKNOLOGI KOKO, LEMBAGA KOKO MALAYSIA",
+    "gredGaji": "Q54",
+    "tempohLantikanPertama": "34 tahun",
+    "tempohLantikanSekarang": "4 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2021, 2010 DAN 2004\n2010-KINI: AHLI INSTITUT KIMIA\nMALAYSIA\n2003-KINI: AHLI PERSATUAN PEGAWAI\nKANAN LKM\n1990-KINI: AHLI KELAB SUKAN DAN\nREKREASI NEGERI SEMBILAN\n2010: ANUGERAH KHIDMAT BAKTI\nCALON K.M.N. TAHUN 2020",
+    "halamanSumber": 33,
+    "gambar": "/gambar/44.jpg",
+    "skim": "Skim Q (Penyelidikan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 45,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERLADANGAN DAN KOMODITI",
+    "bil": "3",
+    "kod": "1096",
+    "nama": "TUAN HAJI WAN BAHARUDDIN BIN WAN ISMAIL",
+    "noKadPengenalan": "661007-03-5889",
+    "noRujukanA": "A0504083",
+    "umur": 58,
+    "jawatan": "KETUA PENGARAH LEMBAGA KENAF DAN TEMBAKAU NEGARA",
+    "gredGaji": "E54",
+    "tempohLantikanPertama": "33 tahun",
+    "tempohLantikanSekarang": "10 tahun",
+    "anugerahDiterima": "P.S.K.(Kelantan) - 2024\nNota:\nAPC TAHUN 2013, 2008, 1998 DAN 1996\n2023-KINI: PENAUNG KOPERASI\nPEGAWAI LEMBAGA KENAF DAN\nTEMBAKAU NEGARA (LKTN) BERHAD\n2024: KETUA PEGAWAI MAKLUMAT,\nLKTN\nPENGERUSI JAWATANKUASA\nPELESENAN DAN PENGUATKUASAAN\nTEMBAKAU\n2024: PENGERUSI JAWATANKUASA\nKERJA KANDUNGAN PORTAL RASMI\nDAN INTERNET LKTN\n2024: AHLI JAWATANKUASA PASUKAN\nKERJA ISMS, LKTN\n2024: PEMEGANG AMANAH KELAB\nSUKAN DAN KEBAJIKAN LKTN\nCALON K.M.N. TAHUN 2024 DAN 2023",
+    "halamanSumber": 34,
+    "gambar": "/gambar/45.jpg",
+    "skim": "Skim E (Ekonomi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 46,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERLADANGAN DAN KOMODITI",
+    "bil": "4",
+    "kod": "1097",
+    "nama": "PUAN RUHIDA BINTI AB RAHIM",
+    "noKadPengenalan": "670305-01-5178",
+    "noRujukanA": "A0604614",
+    "umur": 58,
+    "jawatan": "PEGAWAI PENYELIDIK BAHAGIAN KUALITI DAN PERKHIDMATAN TEKNIKAL, LEMBAGA GETAH MALAYSIA",
+    "gredGaji": "Q54",
+    "tempohLantikanPertama": "24 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\n2024: PEMEGANG AMANAH UNTUK\nPERSATUAN ISLAM LEMBAGA GETAH\nMALAYSIA (PILGM)",
+    "halamanSumber": 34,
+    "gambar": "/gambar/46.jpg",
+    "skim": "Skim Q (Penyelidikan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 47,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERLADANGAN DAN KOMODITI",
+    "bil": "5",
+    "kod": "1098",
+    "nama": "ENCIK ABDUL KARIM BIN CHE HAMID K0184268",
+    "noKadPengenalan": "690508-13-5119",
+    "noRujukanA": "",
+    "umur": 56,
+    "jawatan": "PENGARAH BAHAGIAN PEMINDAHAN TEKNOLOGI DAN PENGEMBANGAN (TOTE), LEMBAGA KOKO MALAYSIA",
+    "gredGaji": "E48",
+    "tempohLantikanPertama": "33 tahun",
+    "tempohLantikanSekarang": "2 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2013, 2005 DAN 1999\n2019-KINI: COUNSELOR, SARAWAK\nINSTITUE OF AGRICULTURE\nSCIENTISTS (SIAS)\n2013-KINI: AHLI MALAYSIAN INSTITUTE\nOF MANAGEMENT\n2016-2023: PENGERUSI KELAB SUKAN,\nKEBAJIKAN DAN REKREASI LKM\nSARAWAK\n2012: ANUGERAH KHIDMAT BAKTI\n(PERINGKAT JABATAN)\nCALON A.M.N. TAHUN 2020 DAN 2019",
+    "halamanSumber": 35,
+    "gambar": "/gambar/47.jpg",
+    "skim": "Skim E (Ekonomi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 48,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERLADANGAN DAN KOMODITI",
+    "bil": "6",
+    "kod": "1108",
+    "nama": "ENCIK SUGA @ MAZREE BIN IMAN H0815084",
+    "noKadPengenalan": "710606-12-5251",
+    "noRujukanA": "",
+    "umur": 54,
+    "jawatan": "PENGARAH BAHAGIAN PELESENAN DAN INSPEKTORAT, LEMBAGA PERINDUSTRIAN KAYU MALAYSIA",
+    "gredGaji": "E54",
+    "tempohLantikanPertama": "29 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "B.S.K.(Sabah) - 2017\nNota:\nAPC TAHUN 2022 DAN 2006\n2022-KINI: AHLI PANEL PENGGUBALAN\nSUKATAN PEPERIKSAAN MTIB\n2022/2026\n2022-KINI: AHLI PANEL PEPERIKSAAN\nMTIB 2022/2026\n2022-KINI: AHLI PANEL AUDIT\nPEPERIKSAAN MTIB 2022/2026\n2022-KINI: PENGERUSI PANEL\nPENYEMAKAN SOALAN PEPERIKSAAN\nMTIB 2022/2026 BAGI SOALAN-SOALAN\nTEKNIKAL/INDUSTRI\n2022-KINI: AHLI PANEL PENGGUBALAN\nDAN PEMERIKSA KERTAS JAWAPAN\nMTIB 2022/2026\n2023-KINI: AHLI TETAP JAWATANKUASA\nPELAN ANTIRASUAH ORGANISASI\n(OACP) MTIB",
+    "halamanSumber": 36,
+    "gambar": "/gambar/48.jpg",
+    "skim": "Skim E (Ekonomi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 49,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERLADANGAN DAN KOMODITI",
+    "bil": "7",
+    "kod": "1112",
+    "nama": "ENCIK MUHAMAD THALHAH BIN AB.KARIM",
+    "noKadPengenalan": "740316-08-5463",
+    "noRujukanA": "A2763036",
+    "umur": 51,
+    "jawatan": "KETUA UNIT UNIT PERANCANG EKONOMI, LEMBAGA GETAH MALAYSIA",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "25 tahun",
+    "tempohLantikanSekarang": "4 tahun",
+    "anugerahDiterima": "Tiada\nNota:\n​2022-2023: KETUA PROJEK, INSENTIF\nPENGELUARAN LATEKS, LEMBAGA\nGETAH MALAYSIA",
+    "halamanSumber": 36,
+    "gambar": "/gambar/49.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 50,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERLADANGAN DAN KOMODITI",
+    "bil": "8",
+    "kod": "1109",
+    "nama": "YBRS. ENCIK VINCENT ANAK SAWAT K0406268",
+    "noKadPengenalan": "760105-13-5385",
+    "noRujukanA": "",
+    "umur": 49,
+    "jawatan": "KETUA PENGARAH LEMBAGA LADA MALAYSIA",
+    "gredGaji": "VU7 Gred Utama C",
+    "tempohLantikanPertama": "23 tahun",
+    "tempohLantikanSekarang": "1 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2015\n2023-KINI: MENTADBIR DAN\nMENGAWAL SELIA KESELURUHAN\nPENTADBIRAN IBU PEJABAT, SEMUA\nPEJABAT WILAYAH DAN PEJABAT\nCAWANGAN\n2023-KINI: MERANCANG DAN\nMEMANTAU KESELURUHAN\nPERLAKSANAAN 12 PROJEK\nRANCANGAN MALAYSIA KE-12 (RMK12)\nTAHUN 2024\n2023-KINI: MERANCANG DAN\nMENYEMAK PERMOHONAN\nPERUNTUKAN PROJEK PEMBANGUNAN\nTAHUN 2025\n2023-KINI: MERANCANG PENGURUSAN\nDAN MEMANTAU DANA MENGURUS\nBAGI TAHUN 2024\n2023-KINI: MERANCANG PROJEK\nKERJASAMA STRATEGIK\n2023-KINI: AHLI LEMBAGA PENGARAH\nSARASPICE SDN. BHD.\nCALON K.M.N. TAHUN 2024",
+    "halamanSumber": 37,
+    "gambar": "/gambar/50.jpg",
+    "skim": "Skim VU (Pengurusan Tertinggi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 51,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERLADANGAN DAN KOMODITI",
+    "bil": "9",
+    "kod": "1106",
+    "nama": "PUAN NOORAZIMAH BINTI SARKOM @ HAJI OTHMAN",
+    "noKadPengenalan": "770313-01-5002",
+    "noRujukanA": "A3531892",
+    "umur": 48,
+    "jawatan": "PENGARAH BAHAGIAN PEMBANGUNAN PERDAGANGAN, LEMBAGA PERINDUSTRIAN KAYU MALAYSIA",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "21 tahun",
+    "tempohLantikanSekarang": "4 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2021 DAN 2008\n2022-KINI: AHLI PANEL PEPERIKSAAN\nMTIB 2022/2026\n2022-KINI: AHLI PANEL PENGGUBALAN\nSUKATAN PEPERIKSAAN MTIB\n2022/2026\n2022-KINI: AHLI PANEL PENGGUBALAN\nSOALAN DAN PEMERIKSA KERTAS\nJAWAPAN MTIB 2022/2026\n2024: AHLI JAWATANKUASA\nTATAKELOLA MTIB\n2024: AHLI PANEL PENGGUBALAN\nSOALAN DAN PEMERIKSA KERTAS\nJAWAPAN MTIB 2024/2028\nCALON K.M.N. TAHUN 2024",
+    "halamanSumber": 38,
+    "gambar": "/gambar/51.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 52,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERLADANGAN DAN KOMODITI",
+    "bil": "10",
+    "kod": "1104",
+    "nama": "ENCIK MOHD AMIN BIN KADIR",
+    "noKadPengenalan": "771129-03-6123",
+    "noRujukanA": "A818104",
+    "umur": 47,
+    "jawatan": "PENGARAH BAHAGIAN KHIDMAT PENGURUSAN, LEMBAGA PERINDUSTRIAN KAYU MALAYSIA",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "21 tahun",
+    "tempohLantikanSekarang": "3 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2013 DAN 2010\n2024: AHLI JAWATANKUASA\nTATAKELOLA MTIB\n2024: AHLI PANEL PENGGUBALAN\nSOALAN DAN PEMERIKSA KERTAS\nJAWAPAN MTIB 2024/2028\n2024: AHLI PANEL PEMBANGUNAN\nSUMBER MANUSIA 2 (PPSM2)\n2024: PANEL TEMUDUGA BAGI\nPENGAMBILAN KONTRAK PERSONEL\nMYSTEP DI MTIB\n2024: PENGERUSI PANEL TEMUDUGA\nLANTIKAN BAHARU DI MTIB\n2024: AHLI JAWATANKUASA PEMANDU\nPROGRAM PENGURUSAN LEAN MTIB\nCALON K.M.N. TAHUN 2024",
+    "halamanSumber": 39,
+    "gambar": "/gambar/52.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 53,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN PERLADANGAN DAN KOMODITI",
+    "bil": "11",
+    "kod": "1103",
+    "nama": "ENCIK WILLIAM SZE",
+    "noKadPengenalan": "790708-13-5015",
+    "noRujukanA": "",
+    "umur": 45,
+    "jawatan": "PENGARAH KANAN BAHAGIAN PERKHIDMATAN TANAMAN, LEMBAGA LADA MALAYSIA",
+    "gredGaji": "E52",
+    "tempohLantikanPertama": "23 tahun",
+    "tempohLantikanSekarang": "5 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2014\n2014-KINI: SIJIL PENTAULIAHAN\nPEROLEHAN KERAJAAN (CERTIFIED\nPROCUMENT OFFICER) OLEH JABATAN\nPERKHIDMATAN AWAM\n2013-KINI: AHLI RAKAN PEMBIMBING\nPERKHIDMATAN AWAM MALAYSIA\n2022-2024: PENGERUSI KELAB KESUDA",
+    "halamanSumber": 39,
+    "gambar": "/gambar/53.jpg",
+    "skim": "Skim E (Ekonomi)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 54,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "KEMENTERIAN SUMBER ASLI DAN KELESTARIAN ALAM",
+    "bil": "1",
+    "kod": "1080",
+    "nama": "YBRS. DR. SHARMIZA BINTI ADNAN",
+    "noKadPengenalan": "750222-14-5620",
+    "noRujukanA": "A2976722",
+    "umur": 50,
+    "jawatan": "PENGARAH URUSAN BAHAGIAN PERKHIDMATAN PERSIJILAN PRODUK, INSTITUT PENYELIDIKAN PERHUTANAN MALAYSIA (FRIM)",
+    "gredGaji": "Q54",
+    "tempohLantikanPertama": "27 tahun",
+    "tempohLantikanSekarang": "3 tahun",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2019 DAN 2013\n2024: HAKIM ANUGERAH PENERBITAN\n(KATEGORI C - BUKU)\n2022: ANUGERAH KHIDMAT SETIA 25\nTAHUN\n2022: ANUGERAH PENERBITAN\nKATEGORI C (BUKU)\n2022: ANUGERAH PENERBITAN HADIAH\nMERIT KATEGORI C (BUKU)\n(PERINGKAT JABATAN)\n2021: PINGAT GANGSA PERTANDINGAN\nREKACIPTA HARI INOVASI FRIM\n(KATEGORI REKA CIPTA/ INOVASI\nUMUM)\n2021: TEMPAT PERTAMA\nPERTANDINGAN REKACIPTA HARI\nINOVASI FRIM (KATEGORI KARYA\nKREATIF BERUNSURKAN R,D,C&I\n(LOGO))\n2021: ANUGERAH PENERBITAN\nINSENTIF JTF\n2021 ANUGERAH PENERBITAN\nKATEGORI B (KERTAS SEPARA/ BUKAN\nTEKNIKAL)",
+    "halamanSumber": 40,
+    "gambar": "/gambar/54.jpg",
+    "skim": "Skim Q (Penyelidikan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 55,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI JOHOR",
+    "bil": "1",
+    "kod": "975",
+    "nama": "ENCIK NG YAN CHUAN",
+    "noKadPengenalan": "641216-10-7393",
+    "noRujukanA": "A0036188",
+    "umur": 60,
+    "jawatan": "TIMBALAN PENGARAH DIVISYEN HARTANAH & INFRASTRUKTUR, JOHOR CORPORATION (JCORP)",
+    "gredGaji": "",
+    "tempohLantikanPertama": "4 tahun",
+    "tempohLantikanSekarang": "2 tahun",
+    "anugerahDiterima": "Tiada\nNota:\n2023: SECURING LAND SALES : (TOTAL\nLAND SIZE - 519 ACRES), (TOTAL TSV -\nRM933 MIL)\n2023: JV DEVELOPMENT - MOU ON THE\nFEASIBILITY OF DEVELOPMENT OF\nCARBON-NEUTRAL PORT AT TANJUNG\nLANGSAT, AMMONIA AND HYDROGEN\nDISTRIBUTION, A LOW-CARBON POWER\nSUPPLY CHAIN FOR JOHOR DATA\nCENTERS, AND CLEAN AMMONIA\nSOURCING.\n2023: JV DEVELOPMENT - MOU WITH\nMITSUI & CO MALAYSIA (MITSUI), TO\nJOINTLY EXPLORE BUSINESS\nOPPORTUNITIES FOR THE\nDEVELOPMENT OF IBTEC WHICH MAY\nINCLUDE BUT NOT LIMITED TO\nRENEWABLE ENERGY, ENERGY\nSOLUTIONS, CARBON CAPTURE, NEW\nENERGY, DIGITAL INFRASTRUCTURE,\nNEXT GENERATION MOBILITY\nINFRASTRUCTURE AND HIGH\nTECHNOLOGY INDUSTRIAL\nDEVELOPMENT(POTENTIAL TSV/ GDV/\nINVESTMENT AMOUNT : RM500\nMILLION)\n2023 RENEWABLE ENERGY - JVA FOR\nROOFTOP SOLAR INSTALLATION AT\nJCORP’S INDUSTRIAL PARKS/ ENERGY\nEFFICIENCY SOLUTIONS/ EXTENSION\nOF LEASE ESG OFFERINGS (POTENTIAL\nTSV/ GDV/ INVESTMENT AMOUNT :\nRM140 MIL)",
+    "halamanSumber": 41,
+    "gambar": "/gambar/55.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 56,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI JOHOR",
+    "bil": "2",
+    "kod": "971",
+    "nama": "ENCIK MOHD AZMI BIN HITAM",
+    "noKadPengenalan": "650507-11-5195",
+    "noRujukanA": "A0192934",
+    "umur": 60,
+    "jawatan": "KETUA PEGAWAI TADBIR PEJABAT KETUA PEGAWAI TADBIR URUS & RISIKO KUMPULAN, JOHOR CORPORATION (JCORP)",
+    "gredGaji": "",
+    "tempohLantikanPertama": "5 tahun",
+    "tempohLantikanSekarang": "3 tahun",
+    "anugerahDiterima": "Tiada\nNota:\n2024 MENETAPKAN DASAR UNTUK\nMEMANTAU DAN MENGURANGI GHG\nEMISSIONS BASELINE, MENUNJUKKAN\nKOMITMEN TERHADAP KELESTARIAN\nALAM SEKITAR.\n2024 INISIATIF OLEH YAYASAN JCORP\n(YJC) DENGAN MELAKSANAKAN\nPROJEK SEPERTI PENANAMAN POKOK,\nPEMBERSIHAN SUNGAI,\nPEMULIHARAAN HUTAN BAKAU, PUSAT\nKITAR SEMULA DAN PROGRAM\nKOMUNIKASI TENTANG KELESTARIAN\nALAM SEKITAR.",
+    "halamanSumber": 42,
+    "gambar": "/gambar/56.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 57,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI JOHOR",
+    "bil": "3",
+    "kod": "966",
+    "nama": "PUAN NOR FAZILAH BINTI MOHD RAZALI",
+    "noKadPengenalan": "701110-01-5644",
+    "noRujukanA": "A1737696",
+    "umur": 54,
+    "jawatan": "KETUA JABATAN BAHAGIAN PERKHIDMATAN KORPORAT, PIHAK BERKUASA WILAYAH PEMBANGUNAN ISKANDAR (IRDA)",
+    "gredGaji": "LL54",
+    "tempohLantikanPertama": "15 tahun",
+    "tempohLantikanSekarang": "3 tahun",
+    "anugerahDiterima": "Tiada\nNota:\n2023-2024: NAIB YANG DIPERTUA,\nPERSATUAN IBU BAPA & GURU (PIBG),\nSEKOLAH MENENGAH SAINS TUANKU\nMUNAWIR (SASER), NEGERI SEMBILAN\n(PERINGKAT SEKOLAH)\n2022-2024: SETIAUSAHA\nJAWATANKUASA SARANA IBUBAPA\nBAGI KUMPULAN PELAJAR AMBILAN\nKE-21 (BATCH ASTRIXX 1923) SEKOLAH\nMENENGAH SAINS TUANKU MUNAWIR\n(SASER), NEGERI SEMBILAN\n(PERINGKAT SEKOLAH)\n2020-KINI: SEKRETARIAT BERSAMA\n[IRDA & BAHAGIAN PEMBANGUNAN\nWILAYAH, KEMENTERIAN EKONOMI\n(DAHULU DI BAWAH UNIT PERANCANG\nEKONOMI, JABATAN PERDANA\nMENTERI] BAGI JAWATANKUASA\nBERSAMA MENTERI ISKANDAR\nMALAYSIA (JMCIM) ANTARA MALAYSIA\nDAN SINGAPURA (PERINGKAT\nKEBANGSAAN)\nCALON K.M.N. TAHUN 2022 DAN 2021\nCALON A.M.N. TAHUN 2024 DAN 2019",
+    "halamanSumber": 43,
+    "gambar": "/gambar/57.jpg",
+    "skim": "Skim LL",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 58,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI JOHOR",
+    "bil": "4",
+    "kod": "973",
+    "nama": "ENCIK AHMAD YUSRI BIN MOHAMED",
+    "noKadPengenalan": "720803-11-5393",
+    "noRujukanA": "A2183658",
+    "umur": 52,
+    "jawatan": "KETUA PEGAWAI DIGITAL PEJABAT KETUA PEGAWAI DIGITAL, JOHOR CORPORATION (JCORP)",
+    "gredGaji": "",
+    "tempohLantikanPertama": "4 tahun",
+    "tempohLantikanSekarang": "3 tahun",
+    "anugerahDiterima": "Tiada\nNota:\n2024: MENETAPKAN DASAR UNTUK\nMEMANTAU DAN MENGURANGI GHG\nEMISSIONS BASELINE, MENUNJUKKAN\nKOMITMEN TERHADAP KELESTARIAN\nALAM SEKITAR.\n2024: INISIATIF OLEH YAYASAN JCORP\n(YJC) DENGAN MELAKSANAKAN\nPROJEK SEPERTI PENANAMAN POKOK,\nPEMBERSIHAN SUNGAI,\nPEMULIHARAAN HUTAN BAKAU, PUSAT\nKITAR SEMULA DAN PROGRAM\nKOMUNIKASI TENTANG KELESTARIAN\nALAM SEKITAR.\n2024: PENUBUHAN KLINIK WAQAF\nAN-NUR YANG MENAWARKAN\nRAWATAN PERUBATAN PADA KOS\nYANG MINIMUM ATAU PERCUMA\nUNTUK GOLONGAN BERPENDAPATAN\nRENDAH BERTUJUAN MEMBANTU\nMEREKA YANG KURANG\nBERKEMAMPUAN MENDAPATKAN\nPERKHIDMATAN KESIHATAN.",
+    "halamanSumber": 44,
+    "gambar": "/gambar/58.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 59,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI JOHOR",
+    "bil": "5",
+    "kod": "969",
+    "nama": "PUAN ZAIDATUL ZURITA BINTI ABDUL RAHMAN",
+    "noKadPengenalan": "731210-05-5448",
+    "noRujukanA": "A2641312",
+    "umur": 51,
+    "jawatan": "PENGURUS BESAR KANAN JABATAN SUSTAINABILITY, JOHOR CORPORATION (JCORP)",
+    "gredGaji": "",
+    "tempohLantikanPertama": "2 tahun",
+    "tempohLantikanSekarang": "2 tahun",
+    "anugerahDiterima": "Tiada\nNota:\n2024: MENETAPKAN DASAR UNTUK\nMEMANTAU DAN MENGURANGI GHG\nEMISSIONS BASELINE, MENUNJUKKAN\nKOMITMEN TERHADAP KELESTARIAN\nALAM SEKITAR.\n2024: INISIATIF OLEH YAYASAN JCORP\n(YJC) DENGAN MELAKSANAKAN\nPROJEK SEPERTI PENANAMAN POKOK,\nPEMBERSIHAN SUNGAI,\nPEMULIHARAAN HUTAN BAKAU, PUSAT\nKITAR SEMULA DAN PROGRAM\nKOMUNIKASI TENTANG KELESTARIAN\nALAM SEKITAR.",
+    "halamanSumber": 45,
+    "gambar": "/gambar/59.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 60,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI MELAKA",
+    "bil": "1",
+    "kod": "997",
+    "nama": "TUAN HAJI MOHD NASIR BIN BAKRI",
+    "noKadPengenalan": "690513-01-6093",
+    "noRujukanA": "A1283012",
+    "umur": 56,
+    "jawatan": "PENGARAH JABATAN PENILAIAN DAN PENGURUSAN HARTA, MAJLIS BANDARAYA MELAKA BERSEJARAH",
+    "gredGaji": "W52",
+    "tempohLantikanPertama": "23 tahun",
+    "tempohLantikanSekarang": "4 tahun",
+    "anugerahDiterima": "P.J.K. (Melaka) - 2003\nNota:\nAPC TAHUN 2021, 2017 DAN 2003\n2024: TOKOH MA'AL HIJRAH KATEGORI\nPENJAWAT AWAM (ANUGERAH UMAR\nBIL ABDUL AZIZ) SEMPENA SAMBUTAN\nMA'AL HIJRAH PERINGKAT NEGERI\nMELAKA\n2024: ANUGERAH PENGURUSAN DAN\nPENTADBIRAN SURAU TERBAIK\nNEGERI MELAKA SEMPENA SAMBUTAN\nMAULIDUR RASUL\n2024: NAIB JOHAN PERTANDINGAN\nLAMAN INDAH MELAKA\n2024: JOHAN SURAU JUMAAT AR\nRAUDHAH PENTADBIRAN DAN\nPENGURUSAN SURAU TERBAIK NEGERI\nMELAKA\n2022: NAIB JOHAN PERTANDINGAN\nKECERIAAN AIDILFITRI\nCALON K.M.N. TAHUN 2024",
+    "halamanSumber": 46,
+    "gambar": "/gambar/60.jpg",
+    "skim": "Skim W (Kewangan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 61,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI SEMBILAN",
+    "bil": "1",
+    "kod": "1059",
+    "nama": "LAR. NASIRUDDIN BIN AB RAHMAN",
+    "noKadPengenalan": "680411-05-5367",
+    "noRujukanA": "A0943700",
+    "umur": 57,
+    "jawatan": "PENGARAH JABATAN TAMAN DAN LANDSKAP, MAJLIS BANDARAYA SEREMBAN",
+    "gredGaji": "J52",
+    "tempohLantikanPertama": "21 tahun",
+    "tempohLantikanSekarang": "4 tahun",
+    "anugerahDiterima": "P.M.C.(Negeri Sembilan) - 2016\nP.J.K. (Negeri Sembilan) - 2012\nNota:\nAPC TAHUN 2021 2014 DAN 2003\n2009 ANUGERAH KHIDMAT\nCEMERLANG (PERINGKAT JABATAN)",
+    "halamanSumber": 47,
+    "gambar": "/gambar/61.jpg",
+    "skim": "Skim J (Kejuruteraan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 62,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI SEMBILAN",
+    "bil": "2",
+    "kod": "1034",
+    "nama": "PUAN ANIZAHATON BINTI KAMALUDIN",
+    "noKadPengenalan": "681016-05-5070",
+    "noRujukanA": "A1091483",
+    "umur": 56,
+    "jawatan": "PENGARAH JABATAN KEWANGAN, MAJLIS BANDARAYA SEREMBAN",
+    "gredGaji": "W54",
+    "tempohLantikanPertama": "31 tahun",
+    "tempohLantikanSekarang": "5 tahun",
+    "anugerahDiterima": "A.N.S.(Negeri Sembilan) - 2016\nP.M.C.(Negeri Sembilan) - 2001\nNota:\nAPC TAHUN 2016, 2009, 2005 DAN 1997\n2024: AHLI PUSPANITA\n2024: AHLI PANEL FORUM PBT\nANJURAN AKADEMI AUDIT NEGARA\n2024: PERSIDANGAN TAHUNAN THE\nCHARTED INSTITUTE OF PUBLIC\nFINANCE AND ACCOUNTANCY (CIPFA)\nDI LONDON, UNITED KIGDOM\n2024: PANEL FORUM BERTAJUK ISU\nPENGURUSAN PIHAK BERKUASA\nTEMPATAN (PBT) DAN CADANGAN\nPENYELESAIAN\n2022: PERSIDANGAN PEGAWAI\nPENGAWAL KEDUA PENTADBIRAN\nKERAJAAN NEGERI SEMBILAN\n2022: PERSIDANGAN AKAUNTAN\nSEKTOR AWAM KEBANGSAAN KALI\nKE-30 (NAPSAC 2022) PSA MALAYSIA",
+    "halamanSumber": 47,
+    "gambar": "/gambar/62.jpg",
+    "skim": "Skim W (Kewangan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 63,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI SEMBILAN",
+    "bil": "3",
+    "kod": "1053",
+    "nama": "ENCIK HANIZAM BIN AHMAD",
+    "noKadPengenalan": "730207-05-5207",
+    "noRujukanA": "A2366883",
+    "umur": 51,
+    "jawatan": "PENGARAH JABATAN UNDANG-UNDANG & PENGUATKUASAAN, MAJLIS BANDARAYA SEREMBAN",
+    "gredGaji": "L52",
+    "tempohLantikanPertama": "27 tahun",
+    "tempohLantikanSekarang": "4 tahun",
+    "anugerahDiterima": "A.N.S.(Negeri Sembilan) - 2020\nP.M.C.(Negeri Sembilan) - 2005\nNota:\nAPC TAHUN 2019 DAN 2016\nANUGERAH KHIDMAT CEMERLANG\n(PERINGKAT JABATAN) TAHUN 2011\nDAN 2004",
+    "halamanSumber": 48,
+    "gambar": "/gambar/63.jpg",
+    "skim": "Skim L (Undang-undang)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 64,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI SEMBILAN",
+    "bil": "4",
+    "kod": "1052",
+    "nama": "PUAN NORHEZLIN BINTI AMAT",
+    "noKadPengenalan": "740211-10-5982",
+    "noRujukanA": "A2733339",
+    "umur": 51,
+    "jawatan": "PENGARAH JABATAN KAWALAN BANGUNAN, MAJLIS BANDARAYA SEREMBAN",
+    "gredGaji": "J54",
+    "tempohLantikanPertama": "25 tahun",
+    "tempohLantikanSekarang": "8 tahun",
+    "anugerahDiterima": "P.M.C.(Negeri Sembilan) - 2013\nNota:\nAPC TAHUN 2016 DAN 2012\n2009: ANUGERAH KHIDMAT\nCEMERLANG (PERINGKAT JABATAN)",
+    "halamanSumber": 48,
+    "gambar": "/gambar/64.jpg",
+    "skim": "Skim J (Kejuruteraan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 65,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI SEMBILAN",
+    "bil": "5",
+    "kod": "1037",
+    "nama": "PUAN AZURA BINTI ABU HASSAN",
+    "noKadPengenalan": "740413-05-5338",
+    "noRujukanA": "A2675833",
+    "umur": 51,
+    "jawatan": "PENGARAH JABATAN PEMBANGUNAN MASYARAKAT & PELANCONGAN, MAJLIS BANDARAYA SEREMBAN",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "29 tahun",
+    "tempohLantikanSekarang": "3 tahun",
+    "anugerahDiterima": "P.M.C.(Negeri Sembilan) - 2018\nP.J.K. (Negeri Sembilan) - 2006\nNota:\nAPC TAHUN 2016 DAN 2012\nANUGERAH KHIDMAT CEMERLANG\nTAHUN 2019 DAN 2004 (PERINGKAT\nNEGERI)",
+    "halamanSumber": 48,
+    "gambar": "/gambar/65.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 66,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI SEMBILAN",
+    "bil": "6",
+    "kod": "1046",
+    "nama": "ENCIK SAIFUL AZUAR BIN AHMAD JADI",
+    "noKadPengenalan": "760114-05-5475",
+    "noRujukanA": "A3173241",
+    "umur": 49,
+    "jawatan": "PENGARAH JABATAN KHIDMAT PENGURUSAN, MAJLIS BANDARAYA SEREMBAN",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "26 tahun",
+    "tempohLantikanSekarang": "2 tahun",
+    "anugerahDiterima": "P.M.C.(Negeri Sembilan) - 2012\nP.J.K. (Negeri Sembilan) - 2006\nNota:\nAPC TAHUN 2021, 2015 DAN 2009\n2024: PENGERUSI JK PENAJA\nPERSATUAN PEGAWAI TADBIR PBT\nMALAYSIA\n2005: ANUGERAH PERKHIDMATAN\nCEMERLANG (PERINGKAT JABATAN)",
+    "halamanSumber": 49,
+    "gambar": "/gambar/66.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 67,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI SEMBILAN",
+    "bil": "7",
+    "kod": "1049",
+    "nama": "TPR. HAJI NAZRI BIN A. GHANI",
+    "noKadPengenalan": "760822-01-6573",
+    "noRujukanA": "A3591948",
+    "umur": 48,
+    "jawatan": "PENGARAH JABATAN PERANCANGAN PEMBANGUNAN, MAJLIS BANDARAYA SEREMBAN",
+    "gredGaji": "J54",
+    "tempohLantikanPertama": "21 tahun",
+    "tempohLantikanSekarang": "2 tahun",
+    "anugerahDiterima": "P.M.C.(Negeri Sembilan) - 2014\nP.J.K. (Negeri Sembilan) - 2008\nNota:\nAPC TAHUN 2019 DAN 2014\n2018: PERANCANG BANDAR\nBERDAFTAR (LPBM 0608/18) LEMBAGA\nPERANCANG BANDAR MALAYSIA\n2016: AHLI KORPORAT (CORPERATE\nMEMBERSHIP NO.655/16)\nPERTUBUHAN PERANCANG BANDAR\nMALAYSIA\n2014-2019: NAIB PRESIDEN\nPERSATUAN PERANCANGAN BANDAR &\nDESA MALAYSIA (PERSADA)\nANUGERAH KHIDMAT CEMERLANG\nTAHUN 2011, 2008 DAN 2005",
+    "halamanSumber": 49,
+    "gambar": "/gambar/67.jpg",
+    "skim": "Skim J (Kejuruteraan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 68,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI PULAU PINANG",
+    "bil": "1",
+    "kod": "998",
+    "nama": "SR. ROSLAN BIN HASSAN",
+    "noKadPengenalan": "680904-08-6401",
+    "noRujukanA": "A1082460",
+    "umur": 56,
+    "jawatan": "TIMBALAN KETUA PEGAWAI EKSEKUTIF PERBADANAN PEMBANGUNAN PULAU PINANG",
+    "gredGaji": "N54",
+    "tempohLantikanPertama": "31 tahun",
+    "tempohLantikanSekarang": "3 tahun",
+    "anugerahDiterima": "B.C.N.(Pulau Pinang) - 2023\nP.K.T.(Pulau Pinang) - 2018\nP.J.K. (Pulau Pinang) - 2005\nNota:\n2024: KONTINJEN PASUKAN\nGEMAPUTERA PDC\n2024: JAWATANKUASA INDUK\nPENGANJURAN GEMAPUTERA\n2024: ROYAL INSTITUTION OF\nSURVEYORS MALAYSIA (RISM)\n2024: ANUGERAH PERKHIDMATAN\nLAMA 30 TAHUN\n2021-KINI: PENGERUSI JAWATANKUASA\nPENILAIAN TENDER (KERJA) PDC\n2021-KINI: PENGERUSI JAWATANKUASA\nRUNDINGAN HARGA",
+    "halamanSumber": 50,
+    "gambar": "/gambar/68.jpg",
+    "skim": "Skim N (Tadbir & Diplomatik/Pentadbiran)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 69,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI PERAK",
+    "bil": "1",
+    "kod": "1075",
+    "nama": "PUAN SAIDATUL AKMA BINTI JAMALUDIN",
+    "noKadPengenalan": "650501-08-6784",
+    "noRujukanA": "A0074428",
+    "umur": 60,
+    "jawatan": "PENGARAH KANAN (KEWANGAN) MAJLIS BANDARAYA IPOH",
+    "gredGaji": "W54",
+    "tempohLantikanPertama": "31 tahun",
+    "tempohLantikanSekarang": "28 tahun",
+    "anugerahDiterima": "P.M.P.(Perak) - 2019\nA.C.M.(Perak) - 2003\nA.M.P.(Perak) - 2002\nNota:\nAPC TAHUN 2016 DAN 2008\nCALON A.M.N. TAHUN 2008\n2021: TOKOH MAULIDUR RASUL S.A.W\n(PERINGAT JABATAN)\n2015: HAKIM DALAM PERTANDINGAN\nSLOGAN INOVASI 2016 (PERINGKAT\nJABATAN)\n2015: MENGELOLA DAN MEMBANTU\nMENJAYAKAN ACARA-ACARA\nPERTABALAN DULI YANG MAHA MULIA\nPADUKA SERI SULTAN PERAK XXXV\n(PERINGKAT NEGERI)",
+    "halamanSumber": 51,
+    "gambar": "/gambar/69.jpg",
+    "skim": "Skim W (Kewangan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 70,
+    "kategoriFail": "B",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "PIHAK BERKUASA TEMPATAN / BADAN BERKANUN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI SELANGOR",
+    "bil": "1",
+    "kod": "1032",
+    "nama": "TPR. LEE LIH SHYAN",
+    "noKadPengenalan": "651216-06-5399",
+    "noRujukanA": "A0238387",
+    "umur": 59,
+    "jawatan": "PENGARAH PERANCANGAN PEMBANGUNAN MAJLIS BANDARAYA PETALING JAYA",
+    "gredGaji": "J52",
+    "tempohLantikanPertama": "35 tahun",
+    "tempohLantikanSekarang": "6 tahun",
+    "anugerahDiterima": "Tiada\nNota:\n2022: THE LONGEST SERVING\nCOUNCIL MEMBER MALAYSIAN\nINSTITUTE OF PLANNERS (MIP) BY MIP\n2022: PENGHARGAAN SUMBANGAN\nDAN KOMITMEN DALAM MEMBANTU\nKERAJAAN NEGERI SELANGOR\nMENANGANI PANDEMIK COVID-19\n2022: NATIOANL ENERGY AWARD 2022\n(MALAYSIA) - WON THE MERIT AWARD\nIN THE CATEGORY 3 : RENEWABLE\nENERGY : OFF GRID THERMAL FOR\nBIOGAS PRODUCTION FOR COOKING\nBY USING FOOD WASTE ANAEROBIC\nDIGESTER IN SMART PJ SOLUTION LAB\nSS2\n2022: NATIOANL ENERGY AWARD 2022\n(MALAYSIA) - WINNER IN THE\nCATEGORY 2 FOR ENERGY EFFICIENT\nBUILDING : SPECIAL SUBMISSION -\nZERO ENERGY BUILDING\nSUB-CATEGORY\n2022: MEMENANGI ANUGERAH KHAS\nDOKUMENTASI TERBAIK DI MAJLIS\nPERSADA INOVASI NEGERI SELANGOR\n(MPIPANS) PERINGKAT NEGERI\nSELANGOR\n2022: WINNERS ASEAN ENERGY\nAWARD 2022 (INTERNATIONAL) -\nENERGY EFFICIENT BUILDING :\nSPECIAL SUBMISSION - ZERO ENERGY\nBUILDING SUB CATERGORY\n2022: JOHAN BAGI KATEGORI INOVASI\nSOSIAL (PENAMBAHBAIKAN) DI MAJLIS\nPERSADA INOVASI NEGERI SELANGOR\n(MPIPANS) PERINGKAT NEGERI\nSELANGOR",
+    "halamanSumber": 52,
+    "gambar": "/gambar/70.jpg",
+    "skim": "Skim J (Kejuruteraan)",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 71,
+    "kategoriFail": "C",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "SWASTA / PERSATUAN / SUKARELA / SUKAN",
+    "kementerian": "KEMENTERIAN KERJA RAYA",
+    "bil": "1",
+    "kod": "1212",
+    "nama": "ENCIK YONG SHANG MING",
+    "noKadPengenalan": "830418-14-5999",
+    "noRujukanA": "",
+    "umur": 42,
+    "jawatan": "NAIB PRESIDEN MASTER BUILDERS ASSOCIATION MALAYSIA",
+    "gredGaji": "",
+    "tempohLantikanPertama": "17 tahun",
+    "tempohLantikanSekarang": "",
+    "anugerahDiterima": "Tiada\nNota:\n2023 : 15 TAHUN MBAM LONG SERVICE\nAWARDS (GOLD) (JABATAN)\n2018 : 10 TAHUN MBAM LONG SERVICE\nAWARDS (SILVER) (JABATAN)\n2018 : 100TH MOST INFLUENTIAL\nYOUNG ENTREPRENEURS (MIYE)\n(KEBANGSAAN)\n2016 : 5 YEARS MBAM LONG SERVICE\nAWARDS (BRONZE) (JABATAN)\n2015 : TOP 40 UNDER 40 AWARD\n(KEBANGSAAN)",
+    "halamanSumber": 1,
+    "gambar": "/gambar/71.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 72,
+    "kategoriFail": "C",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "SWASTA / PERSATUAN / SUKARELA / SUKAN",
+    "kementerian": "KEMENTERIAN BELIA DAN SUKAN",
+    "bil": "1",
+    "kod": "309",
+    "nama": "ENCIK ABU SAMAH BIN BORHAN",
+    "noKadPengenalan": "850227-08-6293",
+    "noRujukanA": "",
+    "umur": 40,
+    "jawatan": "ATLET PARA NEGARA, TENIS BERKERUSI RODA, MAJLIS SUKAN NEGARA",
+    "gredGaji": "",
+    "tempohLantikanPertama": "14 tahun",
+    "tempohLantikanSekarang": "",
+    "anugerahDiterima": "Tiada\nNota:\n2024: JOHAN (BEREGU), KEJOHANAN\nPARATENNIS OPEN DE CAGNES,\nFRANCE\n2024: JOHAN (BEREGU), KEJOHANAN\nPERAK OPEN\n2024: JOHAN (BEREGU), KEJOHANAN\nPENANG OPEN, MALAYSIA\n2024: JOHAN (BEREGU),\n(PERSEORANGAN) DI KEJOHANAN\nSHAH ALAM OPEN MALAYSIA\n2018: ANUGERAH WIRA MUDA\nPUTRAJAYA 2018 (KHAS) SEMPENA\nHARI WILAYAH PERSEKUTUAN\nCALON A.M.N. DICADANGKAN\nKURNIAAN K.M.N.",
+    "halamanSumber": 2,
+    "gambar": "/gambar/72.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 73,
+    "kategoriFail": "C",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "SWASTA / PERSATUAN / SUKARELA / SUKAN",
+    "kementerian": "KEMENTERIAN BELIA DAN SUKAN",
+    "bil": "2",
+    "kod": "305",
+    "nama": "ENCIK CHEAH LIEK HOU",
+    "noKadPengenalan": "880308-56-5429",
+    "noRujukanA": "",
+    "umur": 37,
+    "jawatan": "ATLET PARA NEGARA, BADMINTON, MAJLIS SUKAN NEGARA",
+    "gredGaji": "",
+    "tempohLantikanPertama": "14 tahun",
+    "tempohLantikanSekarang": "",
+    "anugerahDiterima": "Tiada\nNota:\n2024: EMAS - PARALYMPIC GAMES,\nPARIS\n2024: THE BRAND LAUREATE BRAND\nICON LEADERSHIP AWARDS SPORTS\nICON\n2022-2023: ANUGERAH SAM ATLET\nPARA TERBAIK\n2022: ANUGERAH SUKAN NEGARA\nOLAHRAGAWAN PARALIMPIK\nKEBANGSAAN\n2020: EMAS - PARALYMPIC GAMES,\nTOKYO\n2014: OLAHRAGAWAN PARALIMPIK\nWILAYAH PERSEKUTUAN 2013/2014\nCALON A.M.N. DICADANGKAN\nKURNIAAN K.M.N.",
+    "halamanSumber": 2,
+    "gambar": "/gambar/73.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 74,
+    "kategoriFail": "C",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "SWASTA / PERSATUAN / SUKARELA / SUKAN",
+    "kementerian": "KEMENTERIAN BELIA DAN SUKAN",
+    "bil": "3",
+    "kod": "597",
+    "nama": "ENCIK AARON CHIA TENG FONG",
+    "noKadPengenalan": "970224-04-5257",
+    "noRujukanA": "",
+    "umur": 28,
+    "jawatan": "ATLET BADMINTON NEGARA",
+    "gredGaji": "",
+    "tempohLantikanPertama": "14 tahun",
+    "tempohLantikanSekarang": "",
+    "anugerahDiterima": "K.M.W.(Wilayah Persekutuan Putrajaya) - 2022\nB.C.M.(Melaka) - 2021\nNota:\n2024: PINGAT GANGSA SUKAN OLIMPIK\nPARIS\n2024: PINGAT PERAK ASIA TEAM\nCHAMPIONSHIP\n2024: PINGAT PERAK ASEAN\nCHAMPIONSHIP\n2024: PINGAT GANGSA THOMAS CUP\n2024: PINGAT GANGSA ALL ENGLAND\n2023: PINGAT EMAS WORLD\nCHAMPIONSHIP TOKYO\n2023: PINGAT EMAS ASIA TEAM\nCHAMPIONSHIP\n2022: PINGAT EMAS COMMONWEALTH\nGAMES BIRGMINGHAM INDIVIDUAL\n2022: ANUGERAH OLAHRAGAWAN\nKEBANGSAAN\n2021: ANUGERAH BERPASUKAN\nKEBANGSAAN\n2019: PINGAT EMAS SEA GAMES TEAM\nEVENT",
+    "halamanSumber": 3,
+    "gambar": "/gambar/74.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 75,
+    "kategoriFail": "C",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "SWASTA / PERSATUAN / SUKARELA / SUKAN",
+    "kementerian": "KEMENTERIAN BELIA DAN SUKAN",
+    "bil": "4",
+    "kod": "600",
+    "nama": "ENCIK SOH WOOI YIK",
+    "noKadPengenalan": "980217-56-5413",
+    "noRujukanA": "",
+    "umur": 27,
+    "jawatan": "ATLET BADMINTON NEGARA",
+    "gredGaji": "",
+    "tempohLantikanPertama": "14 tahun",
+    "tempohLantikanSekarang": "",
+    "anugerahDiterima": "K.M.W.(Wilayah Persekutuan Putrajaya) - 2022\nNota:\n2024: PINGAT GANGSA SUKAN OLIMPIK\nPARIS\n2024: PINGAT PERAK ASIA TEAM\nCHAMPIONSHIP\n2024: PINGAT PERAK ASEAN\nCHAMPIONSHIP\n2024: PINGAT GANGSA THOMAS CUP\n2023: PINGAT EMAS WORLD\nCHAMPIONSHIP TOKYO\n2023: PINGAT EMAS ASIA TEAM\nCHAMPIONSHIP\n2022: PINGAT EMAS COMMONWEALTH\nGAMES BIRGMINGHAM INDIVIDUAL\n2022: ANUGERAH OLAHRAGAWAN\nKEBANGSAAN\n2021: ANUGERAH PERPASUKAN\nKEBANGSAAN\n2019: PINGAT EMAS SEA GAMES TEAM\nEVENT",
+    "halamanSumber": 4,
+    "gambar": "/gambar/75.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 76,
+    "kategoriFail": "C",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "SWASTA / PERSATUAN / SUKARELA / SUKAN",
+    "kementerian": "KEMENTERIAN BELIA DAN SUKAN",
+    "bil": "5",
+    "kod": "307",
+    "nama": "ENCIK BONNIE BUNYAU ANAK GUSTIN",
+    "noKadPengenalan": "990603-13-5613",
+    "noRujukanA": "",
+    "umur": 26,
+    "jawatan": "ATLET PARA NEGARA, ANGKAT BERAT, MAJLIS SUKAN NEGARA",
+    "gredGaji": "",
+    "tempohLantikanPertama": "14 tahun",
+    "tempohLantikanSekarang": "",
+    "anugerahDiterima": "J.B.K.(Sarawak) - 2023\n2024: OLAHRAGAWAN PARALIMPIK\nKEBANGSAAN\n2024: PINGAT EMAS, SUKAN\nPARALIMPIK PARIS (REKOD DUNIA)\n2024: PINGAT EMAS, WORLD CUP UAE\nDUBAI\n2022: PINGAT PERAK, TEMASYA SUKAN\nASIA HANGZHOU (REKOD ASIA GAMES)\n2020: PINGAT EMAS SUKAN\nPARALIMPIK TOKYO\nCALON A.M.N. DICADANGKAN\nKURNIAAN K.M.N.",
+    "halamanSumber": 5,
+    "gambar": "/gambar/76.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 77,
+    "kategoriFail": "C",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "SWASTA / PERSATUAN / SUKARELA / SUKAN",
+    "kementerian": "KEMENTERIAN KESIHATAN MALAYSIA",
+    "bil": "1",
+    "kod": "813",
+    "nama": "ENCIK RAZALI BIN ABDUL WAHAB 6758435",
+    "noKadPengenalan": "620414-01-5729",
+    "noRujukanA": "",
+    "umur": 63,
+    "jawatan": "TIMBALAN PENGERUSI PANEL PENASIHAT KLINIK KESIHATAN PERINGKAT DAERAH HULU LANGAT PANEL PENASIHAT KLINIK KESIHATAN, KEMENTERIAN KESIHATAN MALAYSIA",
+    "gredGaji": "",
+    "tempohLantikanPertama": "13 tahun",
+    "tempohLantikanSekarang": "",
+    "anugerahDiterima": "Tiada\nNota:\n2023-2024 : PENGHARGAAN\nPENGERUSI PENGANJUR KEMPEN\nDERMA DARAH MERDEKA BERSAMA\nPUSAT DARAH NEGARA DI KLINIK\nKESIHATAN BANDAR SERI\nPUTRA(KEMENTERIAN)\n2020-2023 : SIJIL PENGHARGAAN\nBENDAHARI PANEL PENASIHAT KLINIK\nKESIHATAN DAERAH HULU\nLANGAT(DAERAH)\n2016-2019 : SIJIL PENGHARGAAN AHLI\nPANEL PENASIHAT KLINIK KESIHATAN\nBANDAR SERI PUTRA(NEGERI)\n2012 SIJIL PENGHARGAAN BENGKEL\nPENGERAK\nMASYARAKAT(KEBANGSAAN)",
+    "halamanSumber": 6,
+    "gambar": "/gambar/77.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 78,
+    "kategoriFail": "C",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "SWASTA / PERSATUAN / SUKARELA / SUKAN",
+    "kementerian": "KEMENTERIAN KESIHATAN MALAYSIA",
+    "bil": "2",
+    "kod": "811",
+    "nama": "ENCIK LAU TING HEE",
+    "noKadPengenalan": "660815-03-5719",
+    "noRujukanA": "A0479317",
+    "umur": 58,
+    "jawatan": "TIMBALAN PRESIDEN PERSATUAN BAGI MENCEGAH PENYAKIT TIBI MALAYSIA",
+    "gredGaji": "",
+    "tempohLantikanPertama": "10 tahun",
+    "tempohLantikanSekarang": "",
+    "anugerahDiterima": "Tiada\nNota:\n2001-KINI : TOP UNIT MANAGER OF\nTHE YEAR\n2001-KINI : MILLION DOLLAR AGENCY -\nLTH AGENCY\n2001-KINI : PRUDENTIAL 20 YEARS OF\nSERVICE\n2011-2018 : ANUGERAH EMAS KETUA\nAGENSI BUMIPUTERA CEMERLANG\n2017 : ANUGERAH USAHAWAN TERBAIK\nDARIPADA KERAJAAN NEGERI PERAK\n2016 : ANUGERAH MELVIN JONES\nFELLOW DARIPADA PERSATUAN LIONS\nANTARABANGSA",
+    "halamanSumber": 7,
+    "gambar": "/gambar/78.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 79,
+    "kategoriFail": "C",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "SWASTA / PERSATUAN / SUKARELA / SUKAN",
+    "kementerian": "KEMENTERIAN PERALIHAN TENAGA DAN TRANSFORMASI AIR",
+    "bil": "1",
+    "kod": "1083",
+    "nama": "ENCIK ABD RAHIM BIN MOHD YUSOF",
+    "noKadPengenalan": "680823-10-6909",
+    "noRujukanA": "A1074264",
+    "umur": 56,
+    "jawatan": "KETUA (GRID STRATEGY) BAHAGIAN GRID, TENAGA NASIONAL BERHAD",
+    "gredGaji": "",
+    "tempohLantikanPertama": "33 tahun",
+    "tempohLantikanSekarang": "",
+    "anugerahDiterima": "Tiada\nNota:\n2023: KETUA DELEGASI TNB DALAM\nMESYUARAT JOINT WORKING\nCOMMITTEE TNB, EGAT\nENHANCEMENT OF\nMALAYSIA-THAILAND\nINTERCONNECTION\n2022: MENYELARAS TUNGGUSEDIA\nSEMASA PERSEDIAAN Y2K, OIC,\nCHOGM & PILIHANRAYA UMUM\n2020: MENYUMBANGKAN TENAGA\nDALAM USAHA MEMASUKKAN TNB\nTRANSMISSION SEBAGAI AHLI\nINTERNATIONAL TRANSMISSION\nOPERATION AND MAINTENANCE\nSTUDY GROUP (ITOMS) SEBUAH BADAN\nANTARABANGSA BERHUBUNG\nBENCHMARKING ANTARA\nUTILITI-UTILITI TENAGA DI PERINGKAT\nDUNIA",
+    "halamanSumber": 8,
+    "gambar": "/gambar/79.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 80,
+    "kategoriFail": "C",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "SWASTA / PERSATUAN / SUKARELA / SUKAN",
+    "kementerian": "KEMENTERIAN PERALIHAN TENAGA DAN TRANSFORMASI AIR",
+    "bil": "2",
+    "kod": "1081",
+    "nama": "IR. HAJI MOHD TAUFIK BIN SALLEH",
+    "noKadPengenalan": "690504-06-5387",
+    "noRujukanA": "A1262520",
+    "umur": 56,
+    "jawatan": "PENGURUS BESAR INDAH WATER KONSORTIUM SDN. BHD.",
+    "gredGaji": "",
+    "tempohLantikanPertama": "28 tahun",
+    "tempohLantikanSekarang": "",
+    "anugerahDiterima": "A.M.N. - 2015\nNota:\n2023-KINI: AHLI MAJLIS, PERSATUAN\nAIR MALAYSIA (MWA)\n2022-KINI: AHLI JAWATANKUASA\nPERSATUAN SAHABAT SUNGAI\nMALAYSIA (FORM)\n2022-KINI: AHLI JAWATANKUASA,\nMEMBERSHIP ADMISSION BOARD,\nINSTITUT JURUTERA MALAYSIA (IEM)\n2024: SETIAUSAHA PROFESSIONAL\nINTERVIEW COMMITTEE, INSTITUT\nJURUTERA MALAYSIA\n2024: PANEL PENASIHAT INDUSTRI,\nMALAYSIA JAPAN INTERNATIONAL\nINSTITUTE OF TECHNOLOGY (MJIT)\n2019: SIJIL KEMAHIRAN MALAYSIA\n(PENYELIAAN RAWATAN KUMBAHAN\nTAHAP 3)\nCALON K.M.N. TAHUN 2023 DAN 2022",
+    "halamanSumber": 9,
+    "gambar": "/gambar/80.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  },
+  {
+    "id": 81,
+    "kategoriFail": "C",
+    "anugerah": "KESATRIA MANGKU NEGARA (K.M.N.)",
+    "kategoriPencalonan": "SWASTA / PERSATUAN / SUKARELA / SUKAN",
+    "kementerian": "SETIAUSAHA KERAJAAN NEGERI SABAH",
+    "bil": "1",
+    "kod": "1000",
+    "nama": "DR. FATIMAH SABRINA BINTI MOAHMMAD",
+    "noKadPengenalan": "840123-12-6386",
+    "noRujukanA": "",
+    "umur": 41,
+    "jawatan": "PRESIDEN PERSATUAN SOKONGAN PENYAKIT ALZHEIMER SABAH (SABAH ALZHEIMER'S DISEASE SUPPORT ASSOCIATION) (SABAH AZ)",
+    "gredGaji": "",
+    "tempohLantikanPertama": "15 tahun",
+    "tempohLantikanSekarang": "",
+    "anugerahDiterima": "Tiada\nNota:\nAPC TAHUN 2022\n2024: PENULIS MODUL\nCREDENTIALING & PRIVILEGING\nPROSEDUR SLIT SKIN SMEAR KUSTA\nEDISI KE-2 (PERINGKAT KEBANGSAAN)\n2024: PENGERUSI INOVASI\nPENDIGITALAN PENJAGAAN\nKESIHATAN CREDENTIALING &\nPRIVILEGING (PERINGKAT\nKEBANGSAAN)\n2023: PENULIS MODUL\nCREDENTIALING & PRIVILEGING\nPROSEDUR SUNTIKAN HEPARIN\nUNTUK JURURAWAT MASYARAKAT\nEDISI KE-2 (PERINGKAT KEBANGSAAN)\n2023: PENULIS MODUL\nGARISPANDUAN CO ANALYZER FOR\nSMOKER EDISI 1 (PERINGKAT NEGERI)\n2023: PENULIS MODUL\nGARISPANDUAN CO ANALYZER FOR\nSMOKER EDISI 1 (PERINGKAT NEGERI)\n2022: BEST PITCH AWARD FOR\nDISASTER MANAGEMENT MODULE\nFOR PERSON WITH DISABILITY\n2022: PENULIS MODUL GARIS\nPANDUAN PERKHIDMATAN BERHENTI\nMEROKOK DI KLINIK KESIHATAN\n(PERINGKAT KEBANGSAAN)",
+    "halamanSumber": 10,
+    "gambar": "/gambar/81.jpg",
+    "skim": "Swasta / Bukan Kumpulan Perkhidmatan Awam",
+    "bangsa": "",
+    "status": "belum_diperaku",
+    "diperakuOleh": "",
+    "tarikhPeraku": "",
+    "createdAt": "2026-08-06T09:02:38.639590+00:00",
+    "updatedAt": "2026-08-06T09:02:38.639590+00:00"
+  }
+]</script>
+<script>
+(function () {
+  "use strict";
+  var RECORDS = JSON.parse(document.getElementById("dkbpp-data").textContent);
+  var LS_KEY = "dkbpp_pencalonan_v1";
+  function loadOverrides(){ try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch(e){ return {}; } }
+  function saveOverrides(){ var o={}; RECORDS.forEach(function(r){ o[r.id]={status:r.status,diperakuOleh:r.diperakuOleh,tarikhPeraku:r.tarikhPeraku,bangsa:r.bangsa,skim:r.skim}; }); try { localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch(e){} }
+  (function(){ var o=loadOverrides(); RECORDS.forEach(function(r){ var v=o[r.id]; if(v){ if(v.status!==undefined)r.status=v.status; if(v.diperakuOleh!==undefined)r.diperakuOleh=v.diperakuOleh; if(v.tarikhPeraku!==undefined)r.tarikhPeraku=v.tarikhPeraku; if(v.bangsa!==undefined)r.bangsa=v.bangsa; if(v.skim!==undefined)r.skim=v.skim; } }); })();
+  var BANGSA_OPTIONS = ["Melayu","Cina","India","Bumiputera Sabah","Bumiputera Sarawak","Lain-lain"];
+  var activeMinistry = { senarai: "", diperaku: "" };
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  function uniqueSorted(field){ var set={}; RECORDS.forEach(function(r){ if(r[field]) set[r[field]]=true; });
+    return Object.keys(set).sort(); }
+  function populateSelect(id, values){ var el=document.getElementById(id);
+    values.forEach(function(v){ var o=document.createElement("option"); o.value=v; o.textContent=v; el.appendChild(o); }); }
+  populateSelect("f-kategori", uniqueSorted("kategoriPencalonan"));
+  populateSelect("f-anugerah", uniqueSorted("anugerah"));
+
+  var tabs = [].slice.call(document.querySelectorAll(".tab"));
+  tabs.forEach(function(t){ t.addEventListener("click", function(){
+    tabs.forEach(function(x){ x.classList.remove("active"); }); t.classList.add("active");
+    document.querySelectorAll(".view").forEach(function(v){ v.classList.remove("active"); });
+    document.getElementById("view-"+t.dataset.view).classList.add("active");
+    if(t.dataset.view==="statistik") renderStatistik();
+  }); });
+
+  var filters = { q:"", kategori:"", anugerah:"" };
+  document.getElementById("f-q").addEventListener("input", function(e){ filters.q=e.target.value.toLowerCase(); renderSenarai(); });
+  document.getElementById("f-kategori").addEventListener("change", function(e){ filters.kategori=e.target.value; renderSenarai(); });
+  document.getElementById("f-anugerah").addEventListener("change", function(e){ filters.anugerah=e.target.value; renderSenarai(); });
+
+  function applyFilters(list){ return list.filter(function(r){
+    if(filters.kategori && r.kategoriPencalonan!==filters.kategori) return false;
+    if(filters.anugerah && r.anugerah!==filters.anugerah) return false;
+    if(filters.q){ var hay=(r.nama+" "+r.noKadPengenalan+" "+r.jawatan).toLowerCase();
+      if(hay.indexOf(filters.q)===-1) return false; }
+    return true; }); }
+
+  function groupByKementerian(list){ var g={}; list.forEach(function(r){ (g[r.kementerian]=g[r.kementerian]||[]).push(r); });
+    return Object.keys(g).sort().map(function(k){ return { kementerian:k,
+      calon:g[k].sort(function(a,b){ return a.nama.localeCompare(b.nama); }) }; }); }
+
+  function ministryCounts(list){ var c={}; list.forEach(function(r){ c[r.kementerian]=(c[r.kementerian]||0)+1; });
+    return Object.keys(c).sort().map(function(k){ return { kementerian:k, jumlah:c[k] }; }); }
+
+  function photoHtml(r){
+    var src = "public/gambar/" + r.id + ".jpg";
+    if(src) return '<img class="photo" src="'+src+'" alt="Gambar '+esc(r.nama)+'" loading="lazy">';
+    return '<div class="photo-ph">'+esc((r.nama||"?").charAt(0))+'</div>';
+  }
+
+  function field(k,v){ return '<div class="field"><div class="k">'+k+'</div><div class="v">'+esc(v||"-")+'</div></div>'; }
+
+  // Susun teks "Anugerah Yang Diterima" mentah kepada entri kemas (tahun + teks)
+  function isNewEntry(l){
+    return /^\d{4}(\s*[-–]\s*\d{4})?\s*:/.test(l) || /^\d{4}\s*&\s*\d{4}\s*:/.test(l) ||
+      /^APC\b/i.test(l) || /^CALON\b/i.test(l) || /^BERSARA\b/i.test(l) ||
+      /^[A-Z][A-Z.()A-Za-z]*\s*[-–]\s*\d{4}/.test(l);
+  }
+  function splitEntry(text){
+    var m = text.match(/^(\d{4}(?:\s*[-–]\s*\d{4})?|\d{4}\s*&\s*\d{4})\s*:\s*([\s\S]*)$/);
+    if(m) return { tahun: m[1].replace(/\s+/g,""), teks: m[2].trim() };
+    return { tahun: "", teks: text.trim() };
+  }
+  function parseAnugerah(raw){
+    if(!raw) return { anugerah: [], nota: [] };
+    var lines = String(raw).split("\n").map(function(s){ return s.trim(); }).filter(Boolean);
+    var anugerah=[], nota=[], target=anugerah, cur=null;
+    lines.forEach(function(l){
+      if(/^Nota:?$/i.test(l)){ target=nota; cur=null; return; }
+      if(l==="Tiada"){ target.push({ tahun:"", teks:"Tiada" }); cur=null; return; }
+      if(isNewEntry(l)){ cur={ raw:l }; target.push(cur); }
+      else if(cur){ cur.raw += " "+l; }
+      else { cur={ raw:l }; target.push(cur); }
+    });
+    var fin = function(a){ return a.map(function(e){ return e.teks!==undefined ? e : splitEntry(e.raw); }); };
+    return { anugerah: fin(anugerah), nota: fin(nota) };
+  }
+  function noteItemsHtml(entries){
+    return entries.map(function(e){
+      return '<div class="note-item"><span class="note-thn">'+esc(e.tahun)+'</span>'+
+        '<span class="note-teks">'+esc(e.teks)+'</span></div>';
+    }).join("");
+  }
+
+  function perakuBarHtml(r){
+    if(r.status==="diperaku"){
+      var tarikh = r.tarikhPeraku ? new Date(r.tarikhPeraku).toLocaleDateString("ms-MY") : "";
+      return '<div class="peraku-bar"><div class="diperaku-box">'+
+        '<span>&#10004; Diperaku oleh <strong>'+esc(r.diperakuOleh||"-")+'</strong>'+(tarikh?" &middot; "+tarikh:"")+'</span>'+
+        '<button class="btn-batal" data-act="batal" data-id="'+r.id+'">Batal Peraku</button></div></div>';
+    }
+    return '<div class="peraku-bar"><div class="peraku-box">'+
+      '<input type="text" placeholder="Nama peraku (pilihan)" data-peraku-input="'+r.id+'">'+
+      '<button class="btn-peraku" data-act="peraku" data-id="'+r.id+'">PERAKU</button></div></div>';
+  }
+
+  function calonHtml(r){
+    var status = r.status==="diperaku" ? '<span class="pill ok">DIPERAKU</span>' : '<span class="pill pending">BELUM DIPERAKU</span>';
+    var bangsaOpts = '<option value="">Bangsa: belum dinyatakan</option>' + BANGSA_OPTIONS.map(function(b){
+      return '<option value="'+esc(b)+'"'+(r.bangsa===b?" selected":"")+'>'+esc(b)+'</option>'; }).join("");
+    return '<div class="calon'+(r.status==="diperaku"?" is-diperaku":"")+'"><div>'+ photoHtml(r) +'</div>'+
+      '<div class="calon-body"><div class="calon-head"><div class="calon-name">'+esc(r.nama)+'</div>'+status+'</div>'+
+      '<div class="calon-jawatan">'+esc(r.jawatan)+'</div>'+
+      '<div class="fields">'+
+        field("Kod", r.kod) + field("No. Kad Pengenalan", r.noKadPengenalan) +
+        field("Umur", r.umur) + field("Gred Gaji", r.gredGaji) +
+        field("Skim Perkhidmatan", r.skim) + field("Anugerah", r.anugerah) +
+        field("Kategori Pencalonan", r.kategoriPencalonan) +
+        field("Tempoh Lantikan Pertama", r.tempohLantikanPertama) +
+        field("Tempoh Lantikan Sekarang", r.tempohLantikanSekarang) +
+      '</div>'+
+      (function(){
+        var pa = parseAnugerah(r.anugerahDiterima);
+        var html = '<div class="notes-label">Anugerah Yang Diterima</div>'+
+          '<div class="notes">'+ noteItemsHtml(pa.anugerah.length ? pa.anugerah : [{tahun:"",teks:"Tiada"}]) +'</div>';
+        if(pa.nota.length){
+          html += '<div class="notes-label" style="margin-top:10px;">Nota / Sumbangan</div>'+
+            '<div class="notes">'+ noteItemsHtml(pa.nota) +'</div>';
+        }
+        return html;
+      })() +
+      '<div class="extra-row"><select data-bangsa="'+r.id+'">'+bangsaOpts+'</select>'+
+        '<input type="text" data-skim="'+r.id+'" value="'+esc(r.skim||"")+'" placeholder="Skim perkhidmatan"></div>'+
+      perakuBarHtml(r) +
+      '</div></div>';
+  }
+
+  function navHtml(counts, total, activeKey){
+    var items = '<li><button data-ministry="" class="'+(activeKey===""?"active":"")+'"><span>Semua</span>'+
+      '<span class="badge">'+total+'</span></button></li>';
+    items += counts.map(function(c){
+      return '<li><button data-ministry="'+esc(c.kementerian)+'" class="'+(activeKey===c.kementerian?"active":"")+'">'+
+        '<span>'+esc(c.kementerian)+'</span><span class="badge">'+c.jumlah+'</span></button></li>';
+    }).join("");
+    return items;
+  }
+
+  function blocksHtml(groups, okClass){
+    if(groups.length===0) return '<div class="ministry-block"><div class="empty-state">Tiada calon dijumpai.</div></div>';
+    return groups.map(function(g){
+      return '<section class="ministry-block"><div class="ministry-head'+(okClass?" ok":"")+'">'+
+        '<h3>'+esc(g.kementerian)+'</h3><span class="cnt">'+g.calon.length+' calon</span></div>'+
+        '<div class="calon-list">'+g.calon.map(calonHtml).join("")+'</div></section>';
+    }).join("");
+  }
+
+  function wireControls(container, which, mainId, navId, statusIsDiperaku, resultId){
+    container.querySelectorAll('[data-act="peraku"]').forEach(function(btn){
+      btn.addEventListener("click", function(){ var id=Number(btn.dataset.id);
+        var inp=container.querySelector('[data-peraku-input="'+id+'"]');
+        var r=RECORDS.find(function(x){ return x.id===id; });
+        r.status="diperaku"; r.diperakuOleh=(inp&&inp.value||"").trim(); r.tarikhPeraku=new Date().toISOString();
+        saveOverrides(); renderAll(); });
+    });
+    container.querySelectorAll('[data-act="batal"]').forEach(function(btn){
+      btn.addEventListener("click", function(){ var id=Number(btn.dataset.id);
+        var r=RECORDS.find(function(x){ return x.id===id; });
+        r.status="belum_diperaku"; r.diperakuOleh=""; r.tarikhPeraku=""; saveOverrides(); renderAll(); });
+    });
+    container.querySelectorAll('[data-bangsa]').forEach(function(sel){
+      sel.addEventListener("change", function(){ var r=RECORDS.find(function(x){ return x.id===Number(sel.dataset.bangsa); });
+        r.bangsa=sel.value; saveOverrides(); }); });
+    container.querySelectorAll('[data-skim]').forEach(function(inp){
+      inp.addEventListener("change", function(){ var r=RECORDS.find(function(x){ return x.id===Number(inp.dataset.skim); });
+        r.skim=inp.value.trim(); saveOverrides(); }); });
+  }
+
+  function renderView(which, mainId, navId, statusIsDiperaku, resultId){
+    var base = RECORDS.filter(function(r){ return statusIsDiperaku ? r.status==="diperaku" : r.status!=="diperaku"; });
+    var filtered = applyFilters(base);
+    var counts = ministryCounts(filtered);
+    var active = activeMinistry[which];
+    if(active && !counts.some(function(c){ return c.kementerian===active; })) { active=""; activeMinistry[which]=""; }
+    document.getElementById(navId).innerHTML = navHtml(counts, filtered.length, active);
+    var shown = active ? filtered.filter(function(r){ return r.kementerian===active; }) : filtered;
+    var groups = groupByKementerian(shown);
+    var mainEl = document.getElementById(mainId);
+    mainEl.innerHTML = blocksHtml(groups, statusIsDiperaku);
+    wireControls(mainEl, which, mainId, navId, statusIsDiperaku, resultId);
+    document.getElementById(resultId).textContent = filtered.length + (statusIsDiperaku ? " calon telah diperaku" : " calon belum diperaku");
+    document.getElementById(navId).querySelectorAll("button").forEach(function(btn){
+      btn.addEventListener("click", function(){ activeMinistry[which]=btn.dataset.ministry;
+        renderView(which, mainId, navId, statusIsDiperaku, resultId); });
+    });
+  }
+
+  function renderSenarai(){ renderView("senarai","senarai-main","senarai-nav",false,"senarai-result-count"); }
+  function renderDiperaku(){ renderView("diperaku","diperaku-main","diperaku-nav",true,"diperaku-result-count"); }
+
+  function tally(field){ var c={}; RECORDS.forEach(function(r){ var k=r[field]||"Tidak Dinyatakan";
+    if(!c[k]) c[k]={jumlah:0,diperaku:0}; c[k].jumlah++; if(r.status==="diperaku") c[k].diperaku++; });
+    return Object.keys(c).sort(function(a,b){ return c[b].jumlah-c[a].jumlah; })
+      .map(function(k){ return { label:k, jumlah:c[k].jumlah, diperaku:c[k].diperaku }; }); }
+  function barsHtml(rows,total){ if(!rows.length) return '<p class="result-count">Tiada data.</p>';
+    return rows.map(function(row){ var pct=total?row.jumlah/total*100:0, pOk=total?row.diperaku/total*100:0;
+      return '<div class="bar-row"><div class="bar-label"><span>'+esc(row.label)+'</span>'+
+        '<span class="val">'+row.jumlah+' calon ('+row.diperaku+' diperaku) &middot; '+pct.toFixed(1)+'%</span></div>'+
+        '<div class="bar-track"><div class="bar-fill-ok" style="width:'+pOk+'%"></div>'+
+        '<div class="bar-fill-pending" style="width:'+(pct-pOk)+'%"></div></div></div>'; }).join(""); }
+  function renderStatistik(){ var total=RECORDS.length;
+    document.getElementById("stat-kementerian-bars").innerHTML=barsHtml(tally("kementerian"),total);
+    document.getElementById("stat-skim-bars").innerHTML=barsHtml(tally("skim"),total);
+    document.getElementById("stat-bangsa-bars").innerHTML=barsHtml(tally("bangsa"),total);
+    document.getElementById("stat-kategori-bars").innerHTML=barsHtml(tally("kategoriPencalonan"),total);
+    document.getElementById("stat-anugerah-bars").innerHTML=barsHtml(tally("anugerah"),total); }
+
+  function updateStats(){ var total=RECORDS.length, dp=RECORDS.filter(function(r){ return r.status==="diperaku"; }).length;
+    document.getElementById("stat-total").textContent=total;
+    document.getElementById("stat-diperaku").textContent=dp;
+    document.getElementById("stat-belum").textContent=total-dp;
+    document.getElementById("stat-kementerian").textContent=uniqueSorted("kementerian").length;
+    document.getElementById("tab-count-senarai").textContent="("+(total-dp)+")";
+    document.getElementById("tab-count-diperaku").textContent="("+dp+")"; }
+
+  function renderAll(){ updateStats(); renderSenarai(); renderDiperaku();
+    if(document.getElementById("view-statistik").classList.contains("active")) renderStatistik(); }
+  renderAll();
+})();
+</script>
