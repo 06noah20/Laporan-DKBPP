@@ -1,19 +1,32 @@
 <aside class="pc-sidebar">
-  <div class="pc-sidebar-head">Kementerian / Jabatan</div>
+  <div class="pc-sidebar-head">Kategori Pencalonan</div>
   <ul class="pc-navlist">
     <li>
-      <a href="<%= baseUrl %>" class="<%= !aktifKementerian ? 'active' : '' %>">
-        <span>Semua</span>
-        <span class="pc-badge"><%= kementerianCounts.reduce(function(s,k){return s+k.jumlah;}, 0) %></span>
+      <a href="<%= baseUrl %>" class="pc-nav-all <%= !aktifKategori && !aktifKementerian ? 'active' : '' %>">
+        <span>Semua Kategori</span>
+        <span class="pc-badge"><%= struktur.reduce(function(s,k){return s+k.jumlah;}, 0) %></span>
       </a>
     </li>
-    <% kementerianCounts.forEach(function(k) { %>
-      <li>
-        <a href="<%= baseUrl %>?kementerian=<%= encodeURIComponent(k.kementerian) %>"
-           class="<%= aktifKementerian === k.kementerian ? 'active' : '' %>">
-          <span><%= k.kementerian %></span>
+    <% struktur.forEach(function(k) { %>
+      <li class="pc-nav-group">
+        <a href="<%= baseUrl %>?kategori=<%= encodeURIComponent(k.kategori) %>"
+           class="pc-nav-kat <%= aktifKategori === k.kategori && !aktifKementerian ? 'active' : '' %>">
+          <span><%= k.kategori %></span>
           <span class="pc-badge"><%= k.jumlah %></span>
         </a>
+        <% if (k.kementerian.length) { %>
+          <ul class="pc-nav-sub">
+            <% k.kementerian.forEach(function(m) { %>
+              <li>
+                <a href="<%= baseUrl %>?kategori=<%= encodeURIComponent(k.kategori) %>&kementerian=<%= encodeURIComponent(m.kementerian) %>"
+                   class="<%= aktifKementerian === m.kementerian ? 'active' : '' %>">
+                  <span><%= m.kementerian %></span>
+                  <span class="pc-badge sm"><%= m.jumlah %></span>
+                </a>
+              </li>
+            <% }) %>
+          </ul>
+        <% } %>
       </li>
     <% }) %>
   </ul>

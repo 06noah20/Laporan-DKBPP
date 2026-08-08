@@ -322,3 +322,82 @@ body {
   .pc-sidebar { position: static; max-height: none; }
   .pc-navlist { max-height: 260px; }
 }
+
+/* ===================== Sidebar: kategori bersarang ===================== */
+.pc-navlist { padding: 6px; }
+.pc-navlist a {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 11px; border-radius: 8px; text-decoration: none; color: #33415c;
+  font-size: 12.5px; line-height: 1.3;
+}
+.pc-nav-all { font-weight: 700; }
+.pc-nav-kat { font-weight: 700; color: #16233e; margin-top: 3px; }
+.pc-nav-kat.active, .pc-navlist a.active { background: #16233e; color: #fff; }
+.pc-navlist a:hover { background: rgba(156,114,32,0.10); }
+.pc-navlist a.active:hover { background: #16233e; }
+.pc-nav-sub { list-style: none; margin: 2px 0 4px; padding: 0 0 0 10px; border-left: 2px solid rgba(22,35,62,0.08); }
+.pc-nav-sub a { font-weight: 500; font-size: 12px; color: #4b5872; padding: 6px 10px; }
+.pc-badge {
+  flex: 0 0 auto; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 100px;
+  background: rgba(22,35,62,0.08); color: #4b5872; font-variant-numeric: tabular-nums;
+}
+.pc-badge.sm { font-size: 10px; padding: 0 7px; }
+.pc-navlist a.active .pc-badge { background: rgba(255,255,255,0.2); color: #fff; }
+
+/* ===================== Header kategori dalam laporan ===================== */
+.pc-kat-header {
+  font-size: 15px; font-weight: 800; color: #16233e; letter-spacing: 0.01em;
+  padding: 10px 14px; margin: 6px 0 14px; border-radius: 10px;
+  background: linear-gradient(90deg, rgba(156,114,32,0.16), rgba(156,114,32,0.03));
+  border: 1px solid rgba(156,114,32,0.28);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.pc-kat-header.ok {
+  background: linear-gradient(90deg, rgba(46,125,94,0.16), rgba(46,125,94,0.03));
+  border-color: rgba(46,125,94,0.3);
+}
+.pc-kat-header-count { font-size: 12px; font-weight: 700; color: #9c7220; }
+.pc-kat-header.ok .pc-kat-header-count { color: #2e7d5e; }
+
+/* ===================== Homepage: muat naik ===================== */
+.pc-upload-card {
+  background: #fff; border: 1px solid rgba(22,35,62,0.12); border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(22,35,62,0.05), 0 12px 30px -18px rgba(22,35,62,0.25);
+  padding: 22px; margin-bottom: 24px;
+}
+.pc-upload-head h4 { margin: 0 0 6px; font-size: 17px; font-weight: 700; color: #16233e; }
+.pc-upload-head p { margin: 0 0 16px; color: #4b5872; font-size: 13.5px; max-width: 70ch; }
+.pc-dropzone {
+  display: block; border: 2px dashed rgba(156,114,32,0.5); border-radius: 12px;
+  background: rgba(156,114,32,0.04); padding: 28px 20px; cursor: pointer;
+  transition: background 0.13s, border-color 0.13s;
+}
+.pc-dropzone:hover, .pc-dropzone.drag { background: rgba(156,114,32,0.09); border-color: #9c7220; }
+.pc-dropzone-inner { text-align: center; }
+.pc-dropzone-icon { font-size: 30px; color: #9c7220; }
+.pc-dropzone-text { font-size: 14.5px; font-weight: 600; color: #16233e; margin-top: 6px; }
+.pc-dropzone-hint { font-size: 12px; color: #64748b; margin-top: 3px; }
+.pc-filelist { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.pc-fileitem { font-size: 12.5px; color: #16233e; background: #fff; border: 1px solid rgba(22,35,62,0.12);
+  border-radius: 6px; padding: 5px 10px; display: inline-block; }
+.pc-upload-actions { margin-top: 16px; display: flex; align-items: center; gap: 12px; }
+.pc-upload-warn { margin: 12px 0 0; font-size: 12px; color: #9c5720; }
+
+.pc-summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+.pc-summary-tile { background: #fff; border: 1px solid rgba(22,35,62,0.12); border-radius: 12px;
+  padding: 16px 18px; box-shadow: 0 1px 2px rgba(22,35,62,0.05); }
+.pc-summary-tile .n { font-size: 26px; font-weight: 800; line-height: 1; }
+.pc-summary-tile .l { font-size: 12.5px; color: #64748b; margin-top: 5px; }
+
+.pc-kat-summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.pc-kat-card { background: #fff; border: 1px solid rgba(22,35,62,0.12); border-radius: 12px;
+  padding: 14px 16px; box-shadow: 0 1px 2px rgba(22,35,62,0.05); }
+.pc-kat-card .pc-kat-title { display: block; font-weight: 700; color: #16233e; text-decoration: none;
+  font-size: 14px; line-height: 1.3; }
+.pc-kat-card .pc-kat-title:hover { color: #9c7220; }
+.pc-kat-card .pc-kat-count { font-size: 12.5px; color: #9c7220; font-weight: 700; }
+.pc-kat-card .pc-kat-kem { font-size: 11.5px; color: #64748b; margin-top: 2px; }
+
+@media (max-width: 640px) {
+  .pc-summary-row { grid-template-columns: 1fr; }
+}

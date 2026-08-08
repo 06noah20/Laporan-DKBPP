@@ -1,9 +1,9 @@
 <%- include('../partials/header', { title: title }) %>
 
-<h3 class="mb-1">Senarai Calon Diperaku</h3>
-<p class="text-muted">Calon yang telah diperaku, disusun mengikut kategori dan kementerian.</p>
+<h3 class="mb-1">Senarai Pencalonan DKBPP</h3>
+<p class="text-muted">Pilih kategori/kementerian di sebelah kiri. Hanya calon yang belum diperaku dipaparkan di sini.</p>
 
-<form class="row g-2 mb-3" method="get" action="/pencalonan/diperaku">
+<form class="row g-2 mb-3" method="get" action="/pencalonan/senarai">
   <% if (filters.kategori) { %><input type="hidden" name="kategori" value="<%= filters.kategori %>"><% } %>
   <% if (filters.kementerian) { %><input type="hidden" name="kementerian" value="<%= filters.kementerian %>"><% } %>
   <div class="col-md-6">
@@ -19,30 +19,30 @@
   </div>
   <div class="col-md-3 d-flex gap-2">
     <button type="submit" class="btn btn-primary flex-fill">Tapis</button>
-    <a href="/pencalonan/diperaku" class="btn btn-outline-secondary">Reset</a>
+    <a href="/pencalonan/senarai" class="btn btn-outline-secondary">Reset</a>
   </div>
 </form>
 
-<p class="text-muted mb-3"><%= jumlah %> calon telah diperaku</p>
+<p class="text-muted mb-3"><%= jumlah %> calon belum diperaku</p>
 
 <div class="pc-layout">
   <%- include('_sidebar') %>
 
   <div class="pc-main">
     <% if (groups.length === 0) { %>
-      <div class="pc-ministry-block"><div class="p-5 text-center text-muted">Tiada calon diperaku setakat ini.</div></div>
+      <div class="pc-ministry-block"><div class="p-5 text-center text-muted">Tiada calon dijumpai.</div></div>
     <% } %>
     <% groups.forEach(function(kat) { %>
-      <div class="pc-kat-header ok"><%= kat.kategori %> <span class="pc-kat-header-count"><%= kat.jumlah %> calon</span></div>
+      <div class="pc-kat-header"><%= kat.kategori %> <span class="pc-kat-header-count"><%= kat.jumlah %> calon</span></div>
       <% kat.kementerianGroups.forEach(function(group) { %>
         <section class="pc-ministry-block">
-          <div class="pc-ministry-head" style="background: linear-gradient(90deg, rgba(46,125,94,0.12), rgba(46,125,94,0.02));">
+          <div class="pc-ministry-head">
             <h3><%= group.kementerian %></h3>
-            <span class="count" style="color:#2e7d5e;"><%= group.calon.length %> calon</span>
+            <span class="count"><%= group.calon.length %> calon</span>
           </div>
           <div class="pc-calon-list">
             <% group.calon.forEach(function(c) { %>
-              <%- include('_calon', { c: c, kembali: '/pencalonan/diperaku' }) %>
+              <%- include('_calon', { c: c, kembali: '/pencalonan/senarai' }) %>
             <% }) %>
           </div>
         </section>

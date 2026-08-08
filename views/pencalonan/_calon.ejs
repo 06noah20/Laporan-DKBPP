@@ -27,7 +27,7 @@
       <div class="pc-field"><div class="k">Gred Gaji</div><div class="v"><%= c.gredGaji || '-' %></div></div>
       <div class="pc-field"><div class="k">Skim Perkhidmatan</div><div class="v"><%= c.skim || '-' %></div></div>
       <div class="pc-field"><div class="k">Anugerah</div><div class="v"><%= c.anugerah %></div></div>
-      <div class="pc-field"><div class="k">Kategori Pencalonan</div><div class="v"><%= c.kategoriPencalonan %></div></div>
+      <div class="pc-field"><div class="k">Kategori Pencalonan</div><div class="v"><%= c.kategori %></div></div>
       <div class="pc-field"><div class="k">Tempoh Lantikan Pertama</div><div class="v"><%= c.tempohLantikanPertama || '-' %></div></div>
       <div class="pc-field"><div class="k">Tempoh Lantikan Sekarang</div><div class="v"><%= c.tempohLantikanSekarang || '-' %></div></div>
       <div class="pc-field"><div class="k">Bangsa</div><div class="v"><%= c.bangsa || 'Belum dinyatakan' %></div></div>
@@ -58,11 +58,13 @@
           <span>&#10004; Diperaku oleh <strong><%= c.diperakuOleh || '-' %></strong><%= c.tarikhPeraku ? ' &middot; ' + new Date(c.tarikhPeraku).toLocaleDateString('ms-MY') : '' %></span>
           <form action="/pencalonan/<%= c.id %>/batal-peraku" method="post"
                 onsubmit="return confirm('Batalkan peraku bagi calon ini?');">
+            <input type="hidden" name="kembali" value="<%= typeof kembali !== 'undefined' ? kembali : '/pencalonan/diperaku' %>">
             <button type="submit" class="pc-btn-batal">Batal Peraku</button>
           </form>
         </div>
       <% } else { %>
         <form action="/pencalonan/<%= c.id %>/peraku" method="post" class="pc-peraku-box">
+          <input type="hidden" name="kembali" value="<%= typeof kembali !== 'undefined' ? kembali : '/pencalonan/senarai' %>">
           <input type="text" name="diperakuOleh" placeholder="Nama peraku (pilihan)">
           <button type="submit" class="pc-btn-peraku">PERAKU</button>
         </form>

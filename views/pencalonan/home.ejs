@@ -1,0 +1,111 @@
+<%- include('../partials/header', { title: title }) %>
+
+<h3 class="mb-1">Sistem Laporan Pencalonan DKBPP</h3>
+<p class="text-muted">Darjah Kebesaran, Bintang dan Pingat Persekutuan</p>
+
+<% if (mesej) { %>
+  <div class="alert alert-success"><%= mesej %></div>
+<% } %>
+<% if (ralat) { %>
+  <div class="alert alert-danger"><%= ralat %></div>
+<% } %>
+
+<!-- Kotak muat naik -->
+<div class="pc-upload-card">
+  <div class="pc-upload-head">
+    <h4>Muat Naik Dokumen Laporan</h4>
+    <p>Muat naik dokumen laporan pencalonan (PDF). Sistem akan <strong>menjana laporan
+    secara automatik</strong> — memisahkan calon mengikut kategori dan kementerian,
+    serta mengekstrak gambar dan maklumat setiap calon.</p>
+  </div>
+  <form action="/pencalonan/muat-naik" method="post" enctype="multipart/form-data" id="uploadForm">
+    <label class="pc-dropzone" id="dropzone">
+      <input type="file" name="dokumen" id="fileInput" accept="application/pdf" multiple hidden>
+      <div class="pc-dropzone-inner">
+        <div class="pc-dropzone-icon">⬆</div>
+        <div class="pc-dropzone-text">Klik untuk pilih fail PDF, atau seret ke sini</div>
+        <div class="pc-dropzone-hint">Boleh pilih beberapa dokumen sekaligus (satu bagi setiap kategori)</div>
+        <div id="fileList" class="pc-filelist"></div>
+      </div>
+    </label>
+    <div class="pc-upload-actions">
+      <button type="submit" class="btn btn-primary" id="submitBtn" disabled>Jana Laporan</button>
+      <span class="text-muted" id="processingNote" style="display:none;">⏳ Memproses dokumen... sila tunggu (mungkin ambil 1–2 minit).</span>
+    </div>
+    <p class="pc-upload-warn">⚠️ Amaran: memuat naik dokumen baharu akan <strong>menggantikan</strong> semua data laporan sedia ada.</p>
+  </form>
+</div>
+
+<!-- Ringkasan -->
+<div class="pc-summary-row">
+  <div class="pc-summary-tile">
+    <div class="n"><%= jumlah %></div><div class="l">Jumlah Calon</div>
+  </div>
+  <div class="pc-summary-tile">
+    <div class="n text-success"><%= jumlahDiperaku %></div><div class="l">Telah Diperaku</div>
+  </div>
+  <div class="pc-summary-tile">
+    <div class="n text-secondary"><%= jumlahBelum %></div><div class="l">Belum Diperaku</div>
+  </div>
+</div>
+
+<% if (jumlah > 0) { %>
+  <div class="d-flex gap-2 mb-4">
+    <a href="/pencalonan/senarai" class="btn btn-dark">Lihat Senarai Pencalonan</a>
+    <a href="/pencalonan/diperaku" class="btn btn-outline-success">Senarai Diperaku</a>
+    <a href="/pencalonan/statistik" class="btn btn-outline-dark">Statistik</a>
+  </div>
+
+  <h5 class="mb-2">Ringkasan Mengikut Kategori</h5>
+  <div class="pc-kat-summary">
+    <% struktur.forEach(function(k) { %>
+      <div class="pc-kat-card">
+        <a href="/pencalonan/senarai?kategori=<%= encodeURIComponent(k.kategori) %>" class="pc-kat-title"><%= k.kategori %></a>
+        <span class="pc-kat-count"><%= k.jumlah %> calon</span>
+        <% if (k.kementerian.length) { %>
+          <div class="pc-kat-kem"><%= k.kementerian.length %> kementerian/jabatan</div>
+        <% } %>
+      </div>
+    <% }) %>
+  </div>
+<% } else { %>
+  <p class="text-muted">Belum ada data. Muat naik dokumen laporan di atas untuk menjana laporan.</p>
+<% } %>
+
+<script>
+  (function () {
+    var input = document.getElementById('fileInput');
+    var dz = document.getElementById('dropzone');
+    var list = document.getElementById('fileList');
+    var btn = document.getElementById('submitBtn');
+    var form = document.getElementById('uploadForm');
+    var note = document.getElementById('processingNote');
+
+    function show() {
+      list.innerHTML = '';
+      if (input.files.length) {
+        for (var i = 0; i < input.files.length; i++) {
+          var d = document.createElement('div');
+          d.className = 'pc-fileitem';
+          d.textContent = '📄 ' + input.files[i].name;
+          list.appendChild(d);
+        }
+        btn.disabled = false;
+      } else {
+        btn.disabled = true;
+      }
+    }
+    input.addEventListener('change', show);
+    dz.addEventListener('dragover', function (e) { e.preventDefault(); dz.classList.add('drag'); });
+    dz.addEventListener('dragleave', function () { dz.classList.remove('drag'); });
+    dz.addEventListener('drop', function (e) {
+      e.preventDefault(); dz.classList.remove('drag');
+      input.files = e.dataTransfer.files; show();
+    });
+    form.addEventListener('submit', function () {
+      btn.disabled = true; btn.textContent = 'Memproses...'; note.style.display = 'inline';
+    });
+  })();
+</script>
+
+<%- include('../partials/footer') %>

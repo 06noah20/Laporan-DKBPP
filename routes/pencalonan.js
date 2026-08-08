@@ -1,12 +1,17 @@
 const express = require('express');
+const os = require('os');
 const router = express.Router();
+const multer = require('multer');
 const db = require('../lib/pencalonanDb');
+const { processDocuments } = require('../lib/process-upload');
 const { BANGSA } = require('../lib/constants');
+
+const upload = multer({ dest: os.tmpdir(), limits: { fileSize: 60 * 1024 * 1024 } });
 
 function filtersFromQuery(req) {
   return {
+    kategori: req.query.kategori || '',
     kementerian: req.query.kementerian || '',
-    kategoriPencalonan: req.query.kategoriPencalonan || '',
     anugerah: req.query.anugerah || '',
     skim: req.query.skim || '',
     q: req.query.q || '',
@@ -15,41 +20,72 @@ function filtersFromQuery(req) {
 
 function filterLists() {
   return {
-    kementerianList: db.distinctValues('kementerian'),
-    kategoriList: db.distinctValues('kategoriPencalonan'),
+    kategoriList: db.distinctValues('kategori'),
     anugerahList: db.distinctValues('anugerah'),
     skimList: db.distinctValues('skim'),
   };
 }
 
-// Senarai calon disusun ikut kementerian
+// Homepage: muat naik dokumen + ringkasan
 router.get('/', (req, res) => {
+  res.render('pencalonan/home', {
+    title: 'Sistem Laporan Pencalonan DKBPP',
+    jumlah: db.count(),
+    jumlahDiperaku: db.count('diperaku'),
+    jumlahBelum: db.count('belum_diperaku'),
+    struktur: db.kategoriStructure(),
+    mesej: req.query.mesej || '',
+    ralat: req.query.ralat || '',
+  });
+});
+
+// Muat naik dokumen -> jana laporan
+router.post('/muat-naik', upload.array('dokumen', 20), async (req, res) => {
+  const fs = require('fs');
+  const files = req.files || [];
+  if (files.length === 0) {
+    return res.redirect('/pencalonan?ralat=' + encodeURIComponent('Sila pilih sekurang-kurangnya satu fail PDF.'));
+  }
+  try {
+    const buffers = files.map((f) => fs.readFileSync(f.path));
+    const all = await processDocuments(buffers);
+    files.forEach((f) => { try { fs.unlinkSync(f.path); } catch (_) {} });
+    res.redirect('/pencalonan?mesej=' + encodeURIComponent(all.length + ' calon berjaya dijana daripada ' + files.length + ' dokumen.'));
+  } catch (err) {
+    console.error('Ralat memproses dokumen:', err);
+    files.forEach((f) => { try { fs.unlinkSync(f.path); } catch (_) {} });
+    res.redirect('/pencalonan?ralat=' + encodeURIComponent('Gagal memproses dokumen. Pastikan ia PDF laporan DKBPP yang sah.'));
+  }
+});
+
+// Laporan penuh: calon disusun ikut kategori -> kementerian
+router.get('/senarai', (req, res) => {
   const filters = { ...filtersFromQuery(req), status: 'belum_diperaku' };
-  const records = db.list(filters);
-  const groups = db.groupByKementerian(records);
-  res.render('pencalonan/index', {
+  const groups = db.groupByKategori(db.list(filters));
+  res.render('pencalonan/senarai', {
     title: 'Senarai Pencalonan - Sistem Laporan DKBPP',
     groups,
     filters,
-    jumlah: records.length,
-    kementerianCounts: db.kementerianCounts('belum_diperaku'),
+    jumlah: db.list(filters).length,
+    struktur: db.kategoriStructure('belum_diperaku'),
+    aktifKategori: filters.kategori,
     aktifKementerian: filters.kementerian,
-    baseUrl: '/pencalonan',
+    baseUrl: '/pencalonan/senarai',
     ...filterLists(),
   });
 });
 
-// Senarai calon yang telah diperaku, disusun ikut kementerian
+// Senarai diperaku
 router.get('/diperaku', (req, res) => {
   const filters = { ...filtersFromQuery(req), status: 'diperaku' };
-  const records = db.list(filters);
-  const groups = db.groupByKementerian(records);
+  const groups = db.groupByKategori(db.list(filters));
   res.render('pencalonan/diperaku', {
     title: 'Senarai Diperaku - Sistem Laporan DKBPP',
     groups,
     filters,
-    jumlah: records.length,
-    kementerianCounts: db.kementerianCounts('diperaku'),
+    jumlah: db.list(filters).length,
+    struktur: db.kategoriStructure('diperaku'),
+    aktifKategori: filters.kategori,
     aktifKementerian: filters.kementerian,
     baseUrl: '/pencalonan/diperaku',
     ...filterLists(),
@@ -58,10 +94,9 @@ router.get('/diperaku', (req, res) => {
 
 // Statistik
 router.get('/statistik', (req, res) => {
-  const stat = db.statistik();
   res.render('pencalonan/statistik', {
     title: 'Statistik Pencalonan - Sistem Laporan DKBPP',
-    stat,
+    stat: db.statistik(),
   });
 });
 
@@ -76,25 +111,22 @@ router.get('/:id', (req, res) => {
   });
 });
 
-// Kemaskini maklumat tambahan (bangsa/skim)
 router.post('/:id/maklumat', (req, res) => {
   const record = db.updateMaklumatTambahan(req.params.id, req.body);
   if (!record) return res.status(404).send('Calon tidak dijumpai.');
   res.redirect('/pencalonan/' + req.params.id);
 });
 
-// PERAKU calon
 router.post('/:id/peraku', (req, res) => {
   const record = db.peraku(req.params.id, req.body.diperakuOleh);
   if (!record) return res.status(404).send('Calon tidak dijumpai.');
-  res.redirect('/pencalonan/diperaku');
+  res.redirect(req.body.kembali || '/pencalonan/senarai');
 });
 
-// Batal peraku
 router.post('/:id/batal-peraku', (req, res) => {
   const record = db.batalPeraku(req.params.id);
   if (!record) return res.status(404).send('Calon tidak dijumpai.');
-  res.redirect('/pencalonan/' + req.params.id);
+  res.redirect(req.body.kembali || '/pencalonan/diperaku');
 });
 
 module.exports = router;
